@@ -26,3 +26,5 @@ chroma_db/
 
 # Files located in the future/ directory must be ignored
 future/
+
+TODO.md
