@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Words</title>
+<style>
+body { font-family: sans-serif; max-width: 1000px; margin: 20px auto; padding: 0 12px; }
+table { border-collapse: collapse; margin-bottom: 14px; }
+td, th { padding: 5px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
+pre { white-space: pre-wrap; background: #f4f4f4; padding: 8px; }
+.err { color: #c00; }
+.miss { color: #c00; font-weight: bold; }
+.muted { color: #666; }
+button { margin-right: 6px; }
+.tabs button { padding: 6px 12px; }
+.tabs button.on { font-weight: bold; text-decoration: underline; }
+</style>
+</head>
+<body>
+<p><a href="/">Ask</a> | <a href="/eval">Evaluation</a> | <a href="/words">Words</a></p>
+<h1>Words</h1>
+
+<p>Corpus <select id="corpus"></select> <span class="muted" id="stats"></span></p>
+<p class="muted">Words are lowercased and split on anything that is not a letter, digit or underscore. No stemming, no stop words removed. Counts are summed over chunks, so a word in an overlap zone is counted in both chunks.</p>
+<p class="err" id="error"></p>
+
+<p class="tabs">
+<button id="tab-vocab" class="on">Vocabulary</button>
+<button id="tab-word">Word to chunks</button>
+<button id="tab-question">Question to words</button>
+</p>
+
+<div id="panel-vocab">
+<p>Contains <input id="vocabFilter" placeholder="(optional)"> <button id="vocabGo">Show</button> <span class="muted" id="vocabInfo"></span></p>
+<table id="vocabTable"></table>
+</div>
+
+<div id="panel-word" hidden>
+<p>Word <input id="wordInput"> <button id="wordGo">Find chunks</button> <span class="muted" id="wordInfo"></span></p>
+<table id="wordTable"></table>
+<div id="wordText"></div>
+</div>
+
+<div id="panel-question" hidden>
+<p>Pick one <select id="qPick"></select></p>
+<p><input id="qInput" style="width:80%" placeholder="or type a question"> <button id="qGo">Analyse</button></p>
+<p class="muted" id="qInfo"></p>
+<table id="qTable"></table>
+</div>
+
+<script>
+function el(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text !== undefined) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+
+async function api(path, options) {
+  let res;
+  try { res = await fetch(path, options); } catch (e) { throw new Error("Network error."); }
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error(data.message || ("Error " + res.status));
+  return data;
+}
+
+function fail(e) { document.getElementById("error").textContent = e.message; }
+function clearError() { document.getElementById("error").textContent = ""; }
+function corpus() { return document.getElementById("corpus").value; }
+
+function fillTable(table, headers, rows, classer) {
+  table.replaceChildren();
+  const h = el("tr");
+  headers.forEach(x => h.appendChild(el("th", x)));
+  table.appendChild(h);
+  rows.forEach(r => {
+    const tr = el("tr");
+    r.forEach((v, i) => tr.appendChild(el("td", String(v), classer ? classer(r, i) : undefined)));
+    table.appendChild(tr);
+  });
+}
+
+function showTab(name) {
+  ["vocab", "word", "question"].forEach(n => {
+    document.getElementById("panel-" + n).hidden = n !== name;
+    document.getElementById("tab-" + n).className = n === name ? "on" : "";
+  });
+}
+["vocab", "word", "question"].forEach(n => {
+  document.getElementById("tab-" + n).onclick = () => showTab(n);
+});
+
+async function loadVocab() {
+  clearError();
+  try {
+    const q = encodeURIComponent(document.getElementById("vocabFilter").value);
+    const d = await api("/api/words/vocab?corpus=" + encodeURIComponent(corpus()) + "&q=" + q + "&limit=300");
+    document.getElementById("stats").textContent =
+      d.stats.chunks + " chunks, " + d.stats.vocabulary + " distinct words, " + d.stats.occurrences + " words in total";
+    document.getElementById("vocabInfo").textContent = "Showing " + d.rows.length + " of " + d.total_matching + " words, most frequent first.";
+    fillTable(document.getElementById("vocabTable"), ["word", "occurrences", "in how many chunks"],
+      d.rows.map(r => [r.word, r.occurrences, r.chunks]));
+  } catch (e) { fail(e); }
+}
+
+async function loadWord(w) {
+  clearError();
+  const word = (w !== undefined ? w : document.getElementById("wordInput").value).trim();
+  if (!word) { fail(new Error("Type a word.")); return; }
+  document.getElementById("wordInput").value = word;
+  try {
+    const d = await api("/api/words/word?corpus=" + encodeURIComponent(corpus()) + "&w=" + encodeURIComponent(word));
+    document.getElementById("wordInfo").textContent = d.note
+      ? d.note
+      : d.exists
+        ? d.occurrences + " occurrences in " + d.n_chunks + " chunks (showing " + d.chunks.length + ")"
+        : "This word does not exist in the corpus.";
+    document.getElementById("wordText").replaceChildren();
+    const table = document.getElementById("wordTable");
+    table.replaceChildren();
+    const h = el("tr");
+    ["chunk", "count", ""].forEach(x => h.appendChild(el("th", x)));
+    table.appendChild(h);
+    d.chunks.forEach(c => {
+      const tr = el("tr");
+      tr.appendChild(el("td", c.id));
+      tr.appendChild(el("td", String(c.count)));
+      const td = el("td");
+      const b = el("button", "show text");
+      b.onclick = () => {
+        const box = document.getElementById("wordText");
+        box.replaceChildren();
+        box.appendChild(el("pre", c.id + "\n\n" + c.text));
+      };
+      td.appendChild(b);
+      tr.appendChild(td);
+      table.appendChild(tr);
+    });
+  } catch (e) { fail(e); }
+}
+
+async function analyseQuestion() {
+  clearError();
+  const question = document.getElementById("qInput").value.trim();
+  if (!question) { fail(new Error("Type or pick a question.")); return; }
+  try {
+    const d = await api("/api/words/question", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: question, corpus: corpus() })
+    });
+    const missing = d.rows.filter(r => !r.exists).map(r => r.word);
+    document.getElementById("qInfo").textContent = missing.length
+      ? "Not in the corpus at all: " + missing.join(", ")
+      : "Every word of the question exists in the corpus.";
+    fillTable(document.getElementById("qTable"),
+      ["word", "in corpus", "occurrences", "in how many chunks", "top chunks (count)"],
+      d.rows.map(r => [
+        r.word,
+        r.exists ? "yes" : "NO",
+        r.occurrences,
+        r.n_chunks,
+        r.top_chunks.map(c => c.id + " (" + c.count + ")").join(", ")
+      ]),
+      (row, i) => (row[1] === "NO" ? "miss" : undefined));
+  } catch (e) { fail(e); }
+}
+
+document.getElementById("vocabGo").onclick = loadVocab;
+document.getElementById("vocabFilter").onkeydown = (e) => { if (e.key === "Enter") loadVocab(); };
+document.getElementById("wordGo").onclick = () => loadWord();
+document.getElementById("wordInput").onkeydown = (e) => { if (e.key === "Enter") loadWord(); };
+document.getElementById("qGo").onclick = analyseQuestion;
+document.getElementById("qInput").onkeydown = (e) => { if (e.key === "Enter") analyseQuestion(); };
+document.getElementById("corpus").onchange = loadVocab;
+document.getElementById("qPick").onchange = () => {
+  document.getElementById("qInput").value = document.getElementById("qPick").value;
+};
+
+(async () => {
+  try {
+    const c = await api("/api/corpora");
+    const sel = document.getElementById("corpus");
+    const all = el("option", "all documents");
+    all.value = "";
+    sel.appendChild(all);
+    Object.keys(c.corpora).forEach(name => {
+      const o = el("option", name);
+      o.value = name;
+      sel.appendChild(o);
+    });
+    const qs = await api("/api/questions");
+    const pick = document.getElementById("qPick");
+    const first = el("option", "(choose a question from your sets)");
+    first.value = "";
+    pick.appendChild(first);
+    qs.questions.forEach(q => {
+      const o = el("option", q.corpus + " " + q.id + ": " + q.question);
+      o.value = q.question;
+      pick.appendChild(o);
+    });
+  } catch (e) { fail(e); }
+  loadVocab();
+})();
+</script>
+</body>
+</html>

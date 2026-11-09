@@ -1,0 +1,16 @@
+{
+  "kestrel": {
+    "questions": "eval/kestrel.jsonl",
+    "docs": [
+      "billing-policy-2025.md",
+      "billing-policy-2026.md",
+      "product-guide.md",
+      "service-catalog.md",
+      "support-runbook-errors.md"
+    ]
+  },
+  "own": {
+    "questions": "eval/own.jsonl",
+    "docs": ["CrimeAndPunishment.txt"]
+  }
+}
