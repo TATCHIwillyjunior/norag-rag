@@ -22,12 +22,97 @@ For the two-hop retrieval exercise, see the [concept graph challenge](./concepts
 - RAG with Google Gemini for generation via OpenAI SDK and in-memory BM25 lexical retrieval.
 - See [bm25/README.md](./bm25/README.md) for how it works, how to run it, and the BM25 challenge.
 
+## Shared retrieval interface
+
+The dense baseline, BM25, and graph retrievers use the same chunk identity and
+result fields so their ranked lists can be fused:
+
+- Each chunk has a stable `chunk_id` within its corpus, its exact `text`,
+  `source`, `corpus`, and `provenance`.
+- Each retrieval result has `chunk_id`, `text`, `source`, numeric `score`,
+  one-based `rank`, `retriever`, `corpus`, and `provenance`.
+- Graph results may also include `path`; RRF results include `components`,
+  which records each retriever's original rank, score, and graph path when
+  supplied.
+
+The shared chunker preserves the dense example's paragraph filtering and
+800-character windows with 10% overlap. It assigns `id_0`, `id_1`, and so on,
+matching the current Chroma IDs. IDs are stable for a given corpus and
+chunking configuration; changing the text or chunk settings can change them.
+Keep the corpus name and chunking settings consistent across retrievers before
+fusing results.
+
+The dense baseline is the existing local Chroma + `all-MiniLM-L6-v2` pipeline
+in `ask_rag_google.py` (baseline commit
+`f61dfa8ec83a1237f0fe4fd8ae47feaeb3d35826`). Run it with
+`python ask_rag_google.py`. It remains the baseline configuration; this work
+only exposes its results in the shared shape and uses the shared chunker when
+building a new collection.
+
+The V2 evaluation questions and assignment Kestrel corpus are not in this
+checkout. BM25 is corpus-agnostic and can index a supplied Kestrel document,
+but no Kestrel measurement or result is claimed here. The included documents
+are the Crime and Punishment demo and the Vellora manual.
+
+## BM25 and Reciprocal Rank Fusion
+
+The reusable implementation is in `retrieval/`. BM25 uses case-folded
+`\w+` tokens, positive BM25 IDF, `k1=1.5`, and `b=0.75`; exact identifiers such
+as `E47` remain single tokens. The index is built in memory from the selected
+document every run. It requires no additional dependency or external service,
+which is appropriate for the small teaching corpora; no persistence or
+incremental-update behavior is claimed.
+
+Run lexical retrieval on the default Vellora manual without making an API call:
+
+```powershell
+python bm25/ask_bm25_rag_google.py --retrieval-only
+```
+
+Use the same retriever on the dense-baseline novel or another UTF-8 corpus:
+
+```powershell
+python bm25/ask_bm25_rag_google.py --document docs/CrimeAndPunishment.txt --question "What does this say about Denis?" --retrieval-only
+```
+
+For a corpus directory, BM25 indexes sorted `.txt` and `.md` files and gives
+each chunk a source-qualified ID such as `guide.txt::0`, matching the graph
+retriever's standalone chunking convention:
+
+```powershell
+python bm25/ask_bm25_rag_google.py --document path\to\kestrel\docs --corpus kestrel --question "..." --retrieval-only
+```
+
+Omit `--retrieval-only` to send the retrieved context to Gemini; that requires
+`GOOGLE_API_KEY`. The default top-k is 5 and can be changed with `--top-k`.
+
+`retrieve_with_rrf()` accepts a mapping of enabled retriever names to objects
+with a `search(query, top_k=...)` method. Only retrievers present in that
+mapping are called, so a disabled retriever adds neither results nor cost.
+The defaults are candidate depth 20, final top-k 10, and plain (unweighted)
+RRF constant 60. RRF deduplicates by `(corpus, chunk_id)`, sorts ties
+deterministically, and keeps each input rank/score in `components` for
+inspection. If a retriever's results do not include a corpus (the current
+graph result shape), supply it explicitly, e.g.
+`retrieve_with_rrf(enabled_retrievers, question, corpus="kestrel")`. Graph
+paths remain available in the fused `components` and provenance. The constant
+and candidate depth are defaults, not measured claims that hybrid retrieval
+is better.
+
+Run the dependency-free retrieval tests with:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
 ## Project Structure
 
 - `docs/CrimeAndPunishment.txt`: main source text used by the scripts.
 - `docs/CrimeAndPunishment-shorter.txt`: shortened version of the main source text for quicker testing and rapid experimentation in Gemini online at https://gemini.google.com/app (See note below)
 - `chroma_db/`: persistent local vector database (used by RAG scripts).
 - `bm25/`: BM25 retrieval example and challenges.
+- `retrieval/`: shared chunking, result contract, dense adapter, BM25, and RRF.
+- `tests/`: dependency-free tests for retrieval and fusion.
 - `concepts/`: multi-hop retrieval challenge.
 - `requirements.txt`: Python dependencies.
 
