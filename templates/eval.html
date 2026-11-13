@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RAG evaluation</title>
+<style>
+body { font-family: sans-serif; max-width: 1000px; margin: 20px auto; padding: 0 12px; }
+table { border-collapse: collapse; margin-bottom: 14px; }
+td, th { padding: 5px 8px; border-bottom: 1px solid #ddd; text-align: left; }
+.err { color: #c00; }
+.warn { color: #b36b00; }
+.muted { color: #666; }
+button { margin-right: 6px; }
+</style>
+</head>
+<body>
+<p><a href="/">Ask</a> | <a href="/eval">Evaluation</a> | <a href="/words">Words</a></p>
+<h1>Retrieval evaluation</h1>
+
+<p>
+Corpus <select id="corpus"></select>
+Retrievers:
+<label><input type="checkbox" id="r-dense" checked> dense</label>
+<label><input type="checkbox" id="r-bm25" checked> BM25</label>
+<label><input type="checkbox" id="r-graph"> graph</label>
+</p>
+<p>
+<label><input type="checkbox" id="answers"> also generate the answers (calls the LLM, top-k 5)</label>
+<button id="run">Run evaluation</button>
+</p>
+<p class="muted" id="settings"></p>
+<p class="muted" id="busy"></p>
+<p class="err" id="error"></p>
+<div id="result"></div>
+
+<script>
+const KS = [1, 3, 5, 10];
+
+function el(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text !== undefined) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+
+function setBusy(msg) {
+  document.getElementById("busy").textContent = msg;
+  document.getElementById("run").disabled = msg !== "";
+}
+
+async function api(path, options) {
+  let res;
+  try { res = await fetch(path, options); } catch (e) { throw new Error("Network error."); }
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error(data.message || ("Error " + res.status));
+  return data;
+}
+
+function row(values, header) {
+  const tr = el("tr");
+  values.forEach(v => tr.appendChild(el(header ? "th" : "td", String(v))));
+  return tr;
+}
+
+function pct(x) { return x.toFixed(2); }
+
+function summaryRow(name, a) {
+  const v = [name, a.n];
+  KS.forEach(k => v.push(pct(a["hit@" + k])));
+  KS.forEach(k => v.push(pct(a["recall@" + k])));
+  v.push(pct(a.mrr));
+  return row(v, false);
+}
+
+function summaryTable(summary) {
+  const t = el("table");
+  const head = ["type", "n"];
+  KS.forEach(k => head.push("hit@" + k));
+  KS.forEach(k => head.push("recall@" + k));
+  head.push("mrr");
+  t.appendChild(row(head, true));
+  if (summary.overall) t.appendChild(summaryRow("OVERALL", summary.overall));
+  Object.keys(summary.per_type).forEach(k => {
+    if (summary.per_type[k]) t.appendChild(summaryRow(k, summary.per_type[k]));
+  });
+  return t;
+}
+
+function render(r) {
+  const box = document.getElementById("result");
+  box.replaceChildren();
+  box.appendChild(el("h2", r.corpus + " - " + r.retrievers.join("+") + " - chunk size " + r.chunk_size + ", overlap " + r.overlap_percent + "%"));
+  box.appendChild(el("p", "Answerable: " + r.summary.answerable_questions + ". Unanswerable (left out of the retrieval measure): " + r.summary.unanswerable_questions + ".", "muted"));
+  r.evidence_problems.forEach(p => box.appendChild(el("p", "Evidence problem: " + p, "warn")));
+
+  box.appendChild(el("h3", "After fusion (RRF over the retrievers that are on)"));
+  box.appendChild(summaryTable(r.summary));
+
+  if (r.retrievers.length > 1) {
+    r.retrievers.forEach(n => {
+      box.appendChild(el("h3", "Retriever alone: " + n));
+      box.appendChild(summaryTable(r.per_retriever_summary[n]));
+    });
+  }
+
+  box.appendChild(el("p", "Cost: " + JSON.stringify(r.cost), "muted"));
+
+  const q = el("table");
+  q.appendChild(row(["id", "type", "question", "evidence ranks after fusion (null = not in top 10)", "graph"], true));
+  r.rows.forEach(x => {
+    const g = x.graph_relevant_chunks !== undefined
+      ? x.graph_relevant_chunks.length + " relevant, " + x.graph_relevant_in_fused_top5.length + " reached top 5"
+      : "";
+    q.appendChild(row([x.id, x.type, x.question, x.answerable ? JSON.stringify(x.evidence_ranks) : "unanswerable", g], false));
+  });
+  box.appendChild(q);
+
+  if (r.rows.length && r.rows[0].answer) {
+    box.appendChild(el("h3", "Answers (grade them by hand in the saved file)"));
+    r.rows.forEach(x => {
+      box.appendChild(el("p", x.id + " [" + x.answer.status + "] " + x.answer.text));
+    });
+  }
+  box.appendChild(el("p", "Saved to " + r.file, "muted"));
+}
+
+document.getElementById("run").onclick = async () => {
+  document.getElementById("error").textContent = "";
+  const retrievers = ["dense", "bm25", "graph"].filter(n => document.getElementById("r-" + n).checked);
+  if (!retrievers.length) {
+    document.getElementById("error").textContent = "Switch on at least one retriever.";
+    return;
+  }
+  setBusy("Running... (with answers it calls the LLM once per question)");
+  try {
+    const r = await api("/api/eval", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        corpus: document.getElementById("corpus").value,
+        answers: document.getElementById("answers").checked,
+        retrievers: retrievers
+      })
+    });
+    render(r);
+  } catch (e) {
+    document.getElementById("error").textContent = e.message;
+  }
+  setBusy("");
+};
+
+(async () => {
+  try {
+    const data = await api("/api/corpora");
+    const sel = document.getElementById("corpus");
+    Object.keys(data.corpora).forEach(name => {
+      const o = el("option", name + " (" + data.corpora[name].questions + " questions)");
+      o.value = name;
+      sel.appendChild(o);
+    });
+    document.getElementById("settings").textContent =
+      "Current index: " + data.settings.chunk_size + " characters, " + data.settings.overlap_percent +
+      "% overlap. The graph only exists for Kestrel, and only matches the chunk size it was built with.";
+  } catch (e) {
+    document.getElementById("error").textContent = e.message;
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RAG Q&amp;A</title>
+<style>
+body { font-family: sans-serif; max-width: 900px; margin: 20px auto; padding: 0 12px; }
+table { border-collapse: collapse; }
+td, th { padding: 6px; border-bottom: 1px solid #ddd; text-align: left; }
+pre { white-space: pre-wrap; background: #f4f4f4; padding: 10px; }
+.err { color: #c00; }
+.warn { color: #b36b00; }
+.muted { color: #666; }
+button { margin-right: 6px; }
+.box { border: 1px solid #ddd; padding: 8px 12px; margin: 10px 0; }
+</style>
+</head>
+<body>
+<p><a href="/">Ask</a> | <a href="/eval">Evaluation</a> | <a href="/words">Words</a></p>
+<h1>RAG Q&amp;A</h1>
+
+<h2>Documents</h2>
+<input type="file" id="file" accept=".md,.txt" multiple>
+<table id="docs"></table>
+
+<h2>Settings</h2>
+<p>
+Chunk size (characters) <input type="number" id="chunkSize" value="800" style="width:80px">
+Overlap (%) <input type="number" id="overlap" value="10" style="width:60px">
+<button id="rebuildBtn">Rebuild index with these values</button>
+</p>
+<p class="muted" id="indexInfo"></p>
+<p>Top-k <input type="number" id="topK" value="5" style="width:60px"> (applies to the next question, no re-indexing needed)</p>
+<p>Retrievers:
+<label><input type="checkbox" id="r-dense" checked> dense (embeddings)</label>
+<label><input type="checkbox" id="r-bm25" checked> BM25</label>
+<label><input type="checkbox" id="r-graph"> concept graph (Kestrel only)</label>
+</p>
+<p class="muted" id="graphInfo"></p>
+
+<h2>Question</h2>
+<input id="question" style="width:75%">
+<button id="askBtn">Ask</button>
+
+<p class="muted" id="busy"></p>
+<p class="err" id="error"></p>
+<div id="result"></div>
+
+<script>
+let docs = [];
+let selected = new Set();
+let openRef = "";
+
+function el(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text !== undefined) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+
+function setBusy(msg) {
+  document.getElementById("busy").textContent = msg;
+  document.querySelectorAll("button").forEach(b => { b.disabled = msg !== ""; });
+}
+
+function showError(msg) {
+  document.getElementById("error").textContent = msg;
+}
+
+async function api(path, options) {
+  let res;
+  try {
+    res = await fetch(path, options);
+  } catch (e) {
+    throw new Error("Network error.");
+  }
+  let data = {};
+  try {
+    data = await res.json();
+  } catch (e) {}
+  if (!res.ok) throw new Error(data.message || ("Error " + res.status));
+  return data;
+}
+
+async function run(msg, fn) {
+  showError("");
+  setBusy(msg);
+  try {
+    await fn();
+  } catch (e) {
+    showError(e.message);
+  }
+  setBusy("");
+}
+
+function retrievers() {
+  return ["dense", "bm25", "graph"].filter(n => document.getElementById("r-" + n).checked);
+}
+
+function foundByText(fb) {
+  if (!fb) return "";
+  return Object.keys(fb).map(n => n + " #" + fb[n]).join(", ");
+}
+
+function renderDocs() {
+  const t = document.getElementById("docs");
+  t.replaceChildren();
+  const head = el("tr");
+  ["Use", "Name", "Size (bytes)", "Chunks", ""].forEach(h => head.appendChild(el("th", h)));
+  t.appendChild(head);
+  docs.forEach(d => {
+    const tr = el("tr");
+    const c1 = el("td");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = selected.has(d.name);
+    cb.onchange = () => { if (cb.checked) selected.add(d.name); else selected.delete(d.name); };
+    c1.appendChild(cb);
+    tr.appendChild(c1);
+    tr.appendChild(el("td", d.name));
+    tr.appendChild(el("td", String(d.size)));
+    tr.appendChild(el("td", d.chunks === 0 ? "not indexed" : String(d.chunks)));
+    const c5 = el("td");
+    const del = el("button", "Delete");
+    del.onclick = () => run("Deleting...", async () => {
+      await api("/api/docs/" + encodeURIComponent(d.name), { method: "DELETE" });
+      await loadDocs(false);
+    });
+    c5.appendChild(del);
+    tr.appendChild(c5);
+    t.appendChild(tr);
+  });
+}
+
+async function loadDocs(selectAll) {
+  const data = await api("/api/docs");
+  docs = data.docs;
+  if (selectAll) selected = new Set(docs.map(d => d.name));
+  else selected = new Set([...selected].filter(n => docs.some(d => d.name === n)));
+  document.getElementById("indexInfo").textContent =
+    "Current index: " + data.settings.chunk_size + " characters, " + data.settings.overlap_percent +
+    "% overlap. Embedding model: " + data.model + ".";
+  renderDocs();
+  return data.settings;
+}
+
+async function loadGraphInfo() {
+  try {
+    const g = await api("/api/graph/stats");
+    document.getElementById("graphInfo").textContent = g.stats
+      ? "Graph: " + g.stats.entities + " entities, " + g.stats.relations + " relations (built with chunk size " +
+        g.stats.chunk_size + ", overlap " + g.stats.overlap_percent + "%)."
+      : "Graph not built yet (python graph_cli.py build).";
+  } catch (e) {}
+}
+
+function chunkHeader(c) {
+  let s = c.id + " | " + c.doc + ", chunk " + c.position + ", characters " + c.start + "-" + c.end;
+  if (c.distance !== null && c.distance !== undefined) s += " | dense distance " + c.distance.toFixed(3);
+  if (c.rrf_score !== undefined) s += " | fused score " + c.rrf_score.toFixed(4);
+  if (c.found_by) s += " | found by " + foundByText(c.found_by);
+  return s;
+}
+
+function renderPath(path) {
+  const box = el("div", undefined, "box");
+  box.appendChild(el("strong", "Concept graph path"));
+  const ents = path.entities.map(e => e.name + " (" + e.type + ")");
+  box.appendChild(el("p", "Entities found in the question: " + (ents.length ? ents.join(", ") : "none")));
+  if (path.ignored_generic && path.ignored_generic.length) {
+    box.appendChild(el("p", "Ignored because too generic: " + path.ignored_generic.join(", "), "muted"));
+  }
+  if (path.edges.length) {
+    box.appendChild(el("p", "Edges followed:"));
+    const ul = el("ul");
+    path.edges.forEach(e => ul.appendChild(el("li", "hop " + e.hop + ": " + e.edge + "  [from " + e.chunks.join(", ") + "]")));
+    box.appendChild(ul);
+  }
+  if (path.chunks.length) {
+    box.appendChild(el("p", "Chunks reached: " + path.chunks.map(c => c.id + " (" + c.score + ")").join(", ")));
+  }
+  return box;
+}
+
+function renderResult(r) {
+  const box = document.getElementById("result");
+  box.replaceChildren();
+  box.appendChild(el("h2", r.status === "not_found" ? "Answer (not found)" : "Answer"));
+  box.appendChild(el("p", r.answer));
+  r.warnings.forEach(w => box.appendChild(el("p", w, "warn")));
+  (r.retrieval.notes || []).forEach(w => box.appendChild(el("p", w, "warn")));
+  if (r.reference_details.length) {
+    const p = el("p", "References: ");
+    r.reference_details.forEach(ref => {
+      const b = el("button", ref.id + (Object.keys(ref.found_by).length ? "  (" + foundByText(ref.found_by) + ")" : ""));
+      b.onclick = () => { openRef = openRef === ref.id ? "" : ref.id; renderResult(r); };
+      p.appendChild(b);
+    });
+    box.appendChild(p);
+  }
+  const opened = r.chunks.find(c => c.id === openRef);
+  if (opened) box.appendChild(el("pre", chunkHeader(opened) + "\n\n" + opened.text));
+  if (r.retrieval.graph_path) box.appendChild(renderPath(r.retrieval.graph_path));
+  let info = r.total_ms + " ms (retrievers: " + r.retrieval.retrievers.join("+") + "; " +
+    Object.keys(r.retrieval.timings_ms).map(n => n + " " + r.retrieval.timings_ms[n] + " ms").join(", ") + ")";
+  if (r.usage) info += ", tokens: input " + r.usage.input + ", output " + r.usage.output + ", total " + r.usage.total;
+  box.appendChild(el("p", info, "muted"));
+  const details = el("details");
+  details.appendChild(el("summary", "Retrieved chunks (" + r.chunks.length + ")"));
+  r.chunks.forEach(c => details.appendChild(el("pre", chunkHeader(c) + "\n\n" + c.text)));
+  box.appendChild(details);
+}
+
+document.getElementById("file").onchange = (e) => {
+  const files = Array.from(e.target.files);
+  e.target.value = "";
+  run("Indexing... (the first run loads the embedding model, it can take a minute)", async () => {
+    for (const f of files) {
+      const content = await f.text();
+      try {
+        await api("/api/docs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: f.name, content: content })
+        });
+      } catch (err) {
+        showError(f.name + ": " + err.message);
+      }
+    }
+    await loadDocs(true);
+  });
+};
+
+document.getElementById("rebuildBtn").onclick = () => run("Rebuilding the index...", async () => {
+  await api("/api/reindex", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chunk_size: Number(document.getElementById("chunkSize").value),
+      overlap_percent: Number(document.getElementById("overlap").value)
+    })
+  });
+  await loadDocs(false);
+});
+
+document.getElementById("askBtn").onclick = () => run("Searching...", async () => {
+  document.getElementById("result").replaceChildren();
+  openRef = "";
+  if (retrievers().length === 0) throw new Error("Switch on at least one retriever.");
+  const r = await api("/api/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question: document.getElementById("question").value,
+      docs: Array.from(selected),
+      top_k: Number(document.getElementById("topK").value),
+      retrievers: retrievers()
+    })
+  });
+  renderResult(r);
+});
+
+document.getElementById("question").onkeydown = (e) => {
+  if (e.key === "Enter") document.getElementById("askBtn").click();
+};
+
+run("Loading... (the first start loads the embedding model)", async () => {
+  const s = await loadDocs(true);
+  document.getElementById("chunkSize").value = s.chunk_size;
+  document.getElementById("overlap").value = s.overlap_percent;
+  await loadGraphInfo();
+});
+</script>
+</body>
+</html>
