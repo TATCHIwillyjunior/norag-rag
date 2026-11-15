@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG evaluation</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='studio.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="RAG Studio home">
+      <span class="brand-mark" aria-hidden="true">R</span>
+      <span class="brand-name">RAG Studio<small>V3 RETRIEVAL WORKSPACE</small></span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="/">Ask</a>
+      <a href="/eval" aria-current="page">Evaluation</a>
+      <a href="/words">Words</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-shell">
+  <section class="hero" aria-labelledby="page-title">
+    <div>
+      <p class="eyebrow">Benchmark lab</p>
+      <h1 id="page-title">Measure retrieval quality.</h1>
+      <p class="hero-copy">Run the built-in question sets and compare how well each retriever finds the supporting evidence.</p>
+    </div>
+    <span class="hero-chip"><span aria-hidden="true"></span>Repeatable corpus benchmarks</span>
+  </section>
+
+  <section class="card" aria-labelledby="config-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="config-title">Evaluation setup</h2>
+        <p>Choose a corpus and the retrieval methods to compare.</p>
+      </div>
+    </div>
+    <div class="eval-controls">
+      <label class="field" for="corpus">Corpus
+        <select id="corpus"></select>
+      </label>
+      <div>
+        <p class="eval-options-label">Retrievers</p>
+        <div class="eval-options">
+          <label class="check-tile"><input type="checkbox" id="r-dense" checked> Dense embeddings</label>
+          <label class="check-tile"><input type="checkbox" id="r-bm25" checked> BM25 keyword search</label>
+          <label class="check-tile"><input type="checkbox" id="r-graph"> Concept graph <span class="muted">(Kestrel only)</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="eval-actions">
+      <label class="switch-line"><input type="checkbox" id="answers"> Also generate answers <span class="muted">(makes LLM calls)</span></label>
+      <button class="primary-button" id="run">Run evaluation</button>
+    </div>
+    <p class="muted" id="settings"></p>
+  </section>
+  <p class="muted" id="busy" role="status" aria-live="polite"></p>
+  <p class="err" id="error" role="alert"></p>
+  <section class="card" id="result" aria-live="polite"></section>
+</main>
+
+<script>
+const KS = [1, 3, 5, 10];
+
+function el(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text !== undefined) e.textContent = text;
+  if (cls) e.className = cls;
+  return e;
+}
+
+function setBusy(msg) {
+  document.getElementById("busy").textContent = msg;
+  document.getElementById("run").disabled = msg !== "";
+}
+
+async function api(path, options) {
+  let res;
+  try { res = await fetch(path, options); } catch (e) { throw new Error("Network error."); }
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error(data.message || ("Error " + res.status));
+  return data;
+}
+
+function row(values, header) {
+  const tr = el("tr");
+  values.forEach(v => tr.appendChild(el(header ? "th" : "td", String(v))));
+  return tr;
+}
+
+function pct(x) { return x.toFixed(2); }
+
+function summaryRow(name, a) {
+  const v = [name, a.n];
+  KS.forEach(k => v.push(pct(a["hit@" + k])));
+  KS.forEach(k => v.push(pct(a["recall@" + k])));
+  v.push(pct(a.mrr));
+  return row(v, false);
+}
+
+function summaryTable(summary) {
+  const t = el("table");
+  t.className = "metric-table";
+  const head = ["type", "n"];
+  KS.forEach(k => head.push("hit@" + k));
+  KS.forEach(k => head.push("recall@" + k));
+  head.push("mrr");
+  t.appendChild(row(head, true));
+  if (summary.overall) t.appendChild(summaryRow("OVERALL", summary.overall));
+  Object.keys(summary.per_type).forEach(k => {
+    if (summary.per_type[k]) t.appendChild(summaryRow(k, summary.per_type[k]));
+  });
+  return t;
+}
+
+function render(r) {
+  const box = document.getElementById("result");
+  box.replaceChildren();
+  box.appendChild(el("h2", r.corpus + " - " + r.retrievers.join("+") + " - chunk size " + r.chunk_size + ", overlap " + r.overlap_percent + "%"));
+  box.appendChild(el("p", "Answerable: " + r.summary.answerable_questions + ". Unanswerable (left out of the retrieval measure): " + r.summary.unanswerable_questions + ".", "muted"));
+  r.evidence_problems.forEach(p => box.appendChild(el("p", "Evidence problem: " + p, "warn")));
+
+  box.appendChild(el("h3", "After fusion (RRF over the retrievers that are on)"));
+  box.appendChild(summaryTable(r.summary));
+
+  if (r.retrievers.length > 1) {
+    r.retrievers.forEach(n => {
+      box.appendChild(el("h3", "Retriever alone: " + n));
+      box.appendChild(summaryTable(r.per_retriever_summary[n]));
+    });
+  }
+
+  box.appendChild(el("p", "Cost: " + JSON.stringify(r.cost), "muted"));
+
+  const q = el("table");
+  q.className = "question-results";
+  q.appendChild(row(["id", "type", "question", "evidence ranks after fusion (null = not in top 10)", "graph"], true));
+  r.rows.forEach(x => {
+    const g = x.graph_relevant_chunks !== undefined
+      ? x.graph_relevant_chunks.length + " relevant, " + x.graph_relevant_in_fused_top5.length + " reached top 5"
+      : "";
+    q.appendChild(row([x.id, x.type, x.question, x.answerable ? JSON.stringify(x.evidence_ranks) : "unanswerable", g], false));
+  });
+  box.appendChild(q);
+
+  if (r.rows.length && r.rows[0].answer) {
+    box.appendChild(el("h3", "Answers (grade them by hand in the saved file)"));
+    r.rows.forEach(x => {
+      box.appendChild(el("p", x.id + " [" + x.answer.status + "] " + x.answer.text));
+    });
+  }
+  box.appendChild(el("p", "Saved to " + r.file, "muted"));
+}
+
+document.getElementById("run").onclick = async () => {
+  document.getElementById("error").textContent = "";
+  const retrievers = ["dense", "bm25", "graph"].filter(n => document.getElementById("r-" + n).checked);
+  if (!retrievers.length) {
+    document.getElementById("error").textContent = "Switch on at least one retriever.";
+    return;
+  }
+  setBusy("Running... (with answers it calls the LLM once per question)");
+  try {
+    const r = await api("/api/eval", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        corpus: document.getElementById("corpus").value,
+        answers: document.getElementById("answers").checked,
+        retrievers: retrievers
+      })
+    });
+    render(r);
+  } catch (e) {
+    document.getElementById("error").textContent = e.message;
+  }
+  setBusy("");
+};
+
+(async () => {
+  try {
+    const data = await api("/api/corpora");
+    const sel = document.getElementById("corpus");
+    Object.keys(data.corpora).forEach(name => {
+      const o = el("option", name + " (" + data.corpora[name].questions + " questions)");
+      o.value = name;
+      sel.appendChild(o);
+    });
+    document.getElementById("settings").textContent =
+      "Current index: " + data.settings.chunk_size + " characters, " + data.settings.overlap_percent +
+      "% overlap. The graph only exists for Kestrel, and only matches the chunk size it was built with.";
+  } catch (e) {
+    document.getElementById("error").textContent = e.message;
+  }
+})();
+</script>
+</body>
+</html>

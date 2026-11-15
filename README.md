@@ -1,106 +1,169 @@
-# norag-rag project
+# norag-rag
 
-This workspace contains Python applications to compare **NoRAG** (full-context prompting) versus **RAG** (retrieval-augmented generation) using **Google Gemini** via the **OpenAI SDK**.
+This repository contains a local RAG application and small standalone demos
+for comparing retrieval strategies with Google Gemini. The primary application
+is V3: dense retrieval, BM25, concept-graph retrieval, and reciprocal-rank
+fusion (RRF).
 
-For the BM25 lexical-retrieval example, see [bm25/README.md](./bm25/README.md).
-For the two-hop retrieval exercise, see the [concept graph challenge](./concepts/concept_graph_challenge_part1.md).
+## V3 application
 
-## Applications
+The Flask app serves the Ask, Evaluation, and Words pages. On the Ask and
+Evaluation pages, select the `dense`, `bm25`, and (for Kestrel) `graph`
+retrievers. RRF combines only the retrievers selected for a request. The graph
+is built for Kestrel only.
 
-1. `ask_norag_google.py`
-- NoRAG with Google Gemini via OpenAI SDK (`gemini-3.5-flash-lite`).
-- Loads `docs/CrimeAndPunishment.txt`, injects a "needle" passage, and runs two direct large-context questions:
-	- a baseline question about Marmeladov (present in the original book)
-	- a needle question about Denis (the injected passage)
+### Setup
 
-2. `ask_rag_google.py`
-- RAG with Google Gemini for generation via OpenAI SDK.
-- Uses local embeddings (`all-MiniLM-L6-v2`) + local ChromaDB (`chroma_db/`) to retrieve relevant chunks before asking the model.
-- Currently points to `docs/CrimeAndPunishment.txt` and retrieves `n_results=5` for the question: `What does this say about Denis?`
+Requires Python 3.10 or later.
 
-3. `bm25/ask_bm25_rag_google.py`
-- RAG with Google Gemini for generation via OpenAI SDK and in-memory BM25 lexical retrieval.
-- See [bm25/README.md](./bm25/README.md) for how it works, how to run it, and the BM25 challenge.
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+```
 
-## Project Structure
+Set `GOOGLE_API_KEY` in `.env` to a key from
+[Google AI Studio](https://aistudio.google.com/app/apikey). The key is needed
+for Gemini answer generation and graph extraction; retrieval-only evaluation
+does not generate answers. Optional graph settings are `GRAPH_API_KEY`,
+`GRAPH_BASE_URL`, `GRAPH_MODEL`, and `GRAPH_HOPS`.
 
-- `docs/CrimeAndPunishment.txt`: main source text used by the scripts.
-- `docs/CrimeAndPunishment-shorter.txt`: shortened version of the main source text for quicker testing and rapid experimentation in Gemini online at https://gemini.google.com/app (See note below)
-- `chroma_db/`: persistent local vector database (used by RAG scripts).
-- `bm25/`: BM25 retrieval example and challenges.
-- `concepts/`: multi-hop retrieval challenge.
+### Start the app and build the dense index
+
+```powershell
+python app.py
+```
+
+Open <http://127.0.0.1:5000>. Documents in `corpus/` are available in the Ask
+page; upload documents there if needed, then select **Rebuild index**. The
+evaluation corpora are configured in `eval/corpora.json`:
+
+- `kestrel`: the five Kestrel Markdown documents in `corpus/`
+- `own`: `CrimeAndPunishment.txt`
+
+### Try a question in the Ask page
+
+The Ask page accepts a question you type. Select the matching corpus and try
+one of these examples:
+
+**Kestrel** (select the Kestrel documents):
+
+- "What does error KST-2044 mean and how do I fix it?" (exact identifier)
+- "What happens, step by step, when a customer's card payment fails?"
+  (information spread across the billing policy)
+- "Can I get a refund on my annual plan 45 days after it renewed?"
+  (check the current and previous policy versions)
+- "An old alert mentions mailman. Which team looks after that today, and which
+  channel should support use?" (multi-hop; enable `dense`, `bm25`, and `graph`)
+- "Is there a Kestrel mobile app for iPhone?" (not answered by the corpus)
+
+**Own corpus** (select `CrimeAndPunishment.txt`):
+
+- "What does Raskolnikov take to the pawnbroker?"
+- "Who introduces himself as a titular counsellor in the tavern?"
+- "Who is Lizaveta in relation to the pawnbroker?"
+- "What is the capital of Brazil?" (not answered by this corpus)
+
+These are also examples from the benchmark question files:
+[Kestrel](./eval/kestrel.jsonl) and [own](./eval/own.jsonl).
+
+### Run the benchmark questions
+
+The Evaluation page runs the benchmark questions for the selected corpus; you
+do not need to enter them individually. The same question sets can be run from
+PowerShell with the commands below.
+
+After changing corpus files directly or changing the chunk size/overlap,
+rebuild the index from the Ask page. Rebuild the Kestrel graph as well after
+changing its documents or chunk settings.
+
+### Build and inspect the Kestrel graph
+
+Build the dense index first, then run:
+
+```powershell
+python graph_cli.py build --corpus kestrel --sleep 1
+python graph_cli.py stats
+```
+
+The graph build calls the configured LLM to extract triples. The CLI caches
+completed chunk extractions, so a later build can reuse them. The graph
+retriever is available for Kestrel only.
+
+To sample triples for manual review, run:
+
+```powershell
+python graph_cli.py sample --n 10 --seed 1
+```
+
+Edit `eval/results/graph-triples-graded.json`, setting each triple's `grade`
+to `correct`, `wrong`, or `unsupported`, then summarize the grades:
+
+```powershell
+python graph_cli.py grades
+```
+
+### Run the retrieval evaluations
+
+The minimum configurations are:
+
+```powershell
+python eval_v3.py --corpus kestrel --corpus own --retrievers dense
+python eval_v3.py --corpus kestrel --corpus own --retrievers dense,bm25
+python eval_v3.py --corpus kestrel --retrievers dense,bm25,graph
+```
+
+The graph configuration applies to Kestrel only. Results are saved under
+`eval/results/`. These commands evaluate retrieval without generating answers.
+Add `--answers` to make LLM answer-generation calls as well.
+
+Compare two saved result files at Recall@5:
+
+```powershell
+python eval_v3.py --compare eval/results/FILE_A.json eval/results/FILE_B.json
+```
+
+The tested V3 configuration, graph statistics, benchmark tables, and
+limitations are documented in [REPORT.md](./REPORT.md).
+
+## Standalone demos and exercises
+
+These scripts are separate from the V3 Flask app:
+
+- `ask_norag_google.py`: full-context prompting using the Crime and Punishment
+  demo text and an injected "needle" passage.
+- `ask_rag_google.py`: the original dense ChromaDB RAG demo on
+  `docs/CrimeAndPunishment.txt`.
+- `bm25/ask_bm25_rag_google.py`: standalone BM25 RAG demo. See
+  [bm25/README.md](./bm25/README.md) for usage and its challenge.
+
+The two-hop retrieval exercise is in the
+[concept graph challenge](./concepts/concept_graph_challenge_part1.md).
+The shortened book text in `docs/CrimeAndPunishment-shorter.txt` is available
+for quick experimentation.
+
+## Project structure
+
+- `app.py`: V3 Flask application.
+- `corpus/`: documents indexed by the V3 application.
+- `eval/`: V3 corpus/question configuration and generated results.
+- `graph.py`, `graph_cli.py`: Kestrel graph extraction, retrieval, and CLI.
+- `hybrid.py`, `hybrid_eval.py`, `fusion.py`: retriever selection, evaluation,
+  and RRF.
+- `rag_core.py`: document management, dense ChromaDB indexing, and generation.
+- `bm25_index.py`: V3 persistent BM25 index.
+- `chroma_db/`: generated persistent dense index.
+- `retrieval/`: shared retrieval helpers used by the standalone retrieval
+  examples.
+- `templates/`: application pages.
+- `data/`: generated BM25 cache and graph files.
+- `docs/`: source texts used by the standalone demonstrations.
+- `tests/`: tests for retrieval and graph functionality.
 - `requirements.txt`: Python dependencies.
 
-## Prerequisites
+Run the tests with:
 
-- Python 3.10+ (recommended)
-- API key:
-   - `GOOGLE_API_KEY` from [Google AI Studio](https://aistudio.google.com/app/apikey)
-
-
-## Setup
-
-1. Create and activate a virtual environment:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
+```powershell
+python -m unittest discover -s tests -v
 ```
-
-2. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Configure environment variables:
-
-```bash
-cp .env.example .env
-```
-
-Then edit `.env` and set your real keys.
-
-## Run Each Application
-
-With your virtual environment activated:
-
-### 1) NoRAG + Google
-
-```bash
-python ask_norag_google.py
-```
-
-### 2) RAG + Google
-
-```bash
-python ask_rag_google.py
-```
-
-### 3) BM25 RAG + Google
-
-```bash
-python bm25/ask_bm25_rag_google.py
-```
-
-## Notes
-
-- Both applications use the OpenAI SDK to interact with Google Gemini via Google's OpenAI-compatible endpoint.
-- The RAG app splits the text into fixed-size chunks with an overlap (`CHUNK_SIZE`, `OVERLAP_PERCENT` and `MIN_PARAGRAPH_LENGTH` at the top of the script), indexes them into `chroma_db/` and reuses them across runs.
-- There is one index per document (`DOCUMENT_FILE`) and chunking configuration. When no index exists for the current document and settings, the script asks before building one (this takes a little while).
-- Debug prompt printing can be enabled by passing `debug=True` in the NoRAG app.
-- RAG app prints retrieved context for verification.
-- Streaming output is enabled by default in both applications (controlled by `STREAM_ON` variable).
-
-- Using the shortened version of the text (`docs/CrimeAndPunishment-shorter.txt`)
-	- Go online at https://gemini.google.com/app
-	- At the prompt, start writing "Here is a story: ",
-	- Then paste the content of docs/CrimeAndPunishment-shorter.txt into the Gemini chat app and then, at the end of the prompt, ask "What can you tell me about Denis Amselemovitch?"
-	- Observe the response from Gemini.
-
-# Free books from Project Gutenberg
-- https://www.gutenberg.org/
-# Crime and Punishment by Fyodor Dostoevsky
-- https://www.gutenberg.org/ebooks/2554
-# Huckleberry Finn by Mark Twain
-- https://www.gutenberg.org/ebooks/76

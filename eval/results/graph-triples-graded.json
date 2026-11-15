@@ -1,0 +1,101 @@
+{
+  "seed": 1,
+  "n": 10,
+  "grades_allowed": [
+    "correct",
+    "wrong",
+    "unsupported"
+  ],
+  "triples": [
+    {
+      "head": "Billing and Refund Policy",
+      "relation": "applies_to",
+      "tail": "Starter",
+      "chunk_id": "billing-policy-2026.md#0",
+      "chunk_text": "# Kestrel Analytics — Billing and Refund Policy\n\nEffective date: 1 March 2026 · Policy owner: Finance · Audience: customers and support staff\n\nThis policy replaces the Billing and Refund Policy effective 1 January 2025. Requests made before 1 March 2026 are handled under the previous policy.\n\n## 1. Scope\n\nThis policy explains how Kestrel Analytics charges for its plans, how invoices are issued, and when refunds are possible. It applies to all paid plans: Starter, Team, Business and Enterprise. Enterprise contracts may contain different terms; when they do, the contract takes precedence over this policy. Current prices are published on the Kestrel pricing page and are not repeated here.\n\n## 2. Billing cycles\n\nPaid plans are billed per seat, either monthly or annually. Monthly plans are char",
+      "grade": "correct",
+      "notes": ""
+    },
+    {
+      "head": "query-engine",
+      "relation": "owned_by",
+      "tail": "Analytics Engine",
+      "chunk_id": "service-catalog.md#1",
+      "chunk_text": "e sign-on (SAML) and SCIM provisioning. Issues the session tokens used by every other service.\nOwner: **Identity**.\n\n### connector-hub\n\nStores connector credentials (encrypted with per-workspace keys) and opens the connections to customer data sources. All outgoing connections leave through two fixed addresses, 203.0.113.10 and 203.0.113.11.\nOwner: **Data Integrations**.\n\n### query-engine\n\nRuns dataset queries, enforces the 120-second query time limit, and caches results for dashboards.\nOwner: **Analytics Engine**.\n\n### scheduler\n\nTriggers dataset refreshes and scheduled reports at the right time, in the time zone of each schedule. Generates the report PDFs and hands them over for delivery.\nOwner: **Analytics Engine**.\n\n### postroom\n\nSends every e-mail that leaves Kestrel: scheduled report",
+      "grade": "correct",
+      "notes": ""
+    },
+    {
+      "head": "Billing and Refund Policy",
+      "relation": "applies_to",
+      "tail": "Business",
+      "chunk_id": "billing-policy-2026.md#0",
+      "chunk_text": "# Kestrel Analytics — Billing and Refund Policy\n\nEffective date: 1 March 2026 · Policy owner: Finance · Audience: customers and support staff\n\nThis policy replaces the Billing and Refund Policy effective 1 January 2025. Requests made before 1 March 2026 are handled under the previous policy.\n\n## 1. Scope\n\nThis policy explains how Kestrel Analytics charges for its plans, how invoices are issued, and when refunds are possible. It applies to all paid plans: Starter, Team, Business and Enterprise. Enterprise contracts may contain different terms; when they do, the contract takes precedence over this policy. Current prices are published on the Kestrel pricing page and are not repeated here.\n\n## 2. Billing cycles\n\nPaid plans are billed per seat, either monthly or annually. Monthly plans are char",
+      "grade": "correct",
+      "notes": ""
+    },
+    {
+      "head": "gateway",
+      "relation": "owned_by",
+      "tail": "Platform",
+      "chunk_id": "service-catalog.md#0",
+      "chunk_text": "# Kestrel Analytics — Service Catalog\n\nInternal document · Owner: Platform team · Last updated: 15 September 2026\n\nThis catalog lists the production services of Kestrel, what each one does, and which team owns it. The owning team is responsible for the service's on-call rotation, its alerts and its runbook entries. When in doubt about who owns something, ask in #platform-help.\n\n## 1. Services\n\n### gateway\n\nPublic entry point for the web app and the public API. Handles TLS, rate limiting and request routing to the other services. Rate limit: 600 API requests per minute per workspace; requests above the limit receive HTTP 429.\nOwner: **Platform**.\n\n### auth\n\nSign-in with password, two-factor authentication, single sign-on (SAML) and SCIM provisioning. Issues the session tokens used by every ",
+      "grade": "correct",
+      "notes": ""
+    },
+    {
+      "head": "Billing and Refund Policy",
+      "relation": "applies_to",
+      "tail": "Starter",
+      "chunk_id": "billing-policy-2025.md#0",
+      "chunk_text": "# Kestrel Analytics — Billing and Refund Policy\n\nEffective date: 1 January 2025 · Policy owner: Finance · Audience: customers and support staff\n\n## 1. Scope\n\nThis policy explains how Kestrel Analytics charges for its plans, how invoices are issued, and when refunds are possible. It applies to all paid plans: Starter, Team, Business and Enterprise. Enterprise contracts may contain different terms; when they do, the contract takes precedence over this policy. Current prices are published on the Kestrel pricing page and are not repeated here.\n\n## 2. Billing cycles\n\nPaid plans are billed per seat, either monthly or annually. Monthly plans are charged on the same day each month as the original purchase. Annual plans are charged once a year, on the anniversary of the purchase.\n\nCustomers who cho",
+      "grade": "correct",
+      "notes": ""
+    },
+    {
+      "head": "Payments Core",
+      "relation": "on_call_channel",
+      "tail": "#oncall-payments",
+      "chunk_id": "service-catalog.md#4",
+      "chunk_text": "saging | 08:00–20:00, weekdays |\n| Payments Core | Jonas Berg | #oncall-payments | 24/7 rotation |\n\nTeams with weekday hours are covered outside those hours by the Platform on-call, who can page the team lead for SEV-1 incidents only.\n\n## 3. Escalation rules\n\n1. Support identifies the service involved, using the error code and the Support Runbook.\n2. Support posts in the on-call channel of the team that owns that service, with the workspace name, the error code, the time, and the severity level.\n3. For SEV-1, support also pages the on-call engineer through the paging tool; posting in the channel is not enough.\n4. If the owning team is outside its working hours, escalate to the Platform on-call.\n5. The owning team acknowledges in the thread and becomes responsible for the follow-up with sup",
+      "grade": "correct",
+      "notes": ""
+    },
+    {
+      "head": "Owner",
+      "relation": "requires",
+      "tail": "Settings → Plan → Payment method",
+      "chunk_id": "billing-policy-2026.md#2",
+      "chunk_text": "tomers can also pay by bank transfer against an invoice, with payment due within 30 days of the invoice date.\n\nThe payment method can be updated by the workspace Owner from **Settings → Plan → Payment method**. We do not store full card or account numbers; they are held by our payment processor.\n\n## 4. Invoices\n\nAn invoice is issued for every charge and sent by e-mail to the billing contact of the workspace. Invoices can also be downloaded from **Settings → Plan → Invoices**. The billing contact and the company details printed on invoices (name, address, VAT number) can be changed by the Owner; changes apply to future invoices only. A corrected copy of a past invoice can be requested from support within 12 months of its date.\n\n## 5. Adding and removing seats\n\nSeats can be added at any time",
+      "grade": "unsupported",
+      "notes": ""
+    },
+    {
+      "head": "Payments Core",
+      "relation": "on_call_channel",
+      "tail": "#oncall-payments",
+      "chunk_id": "service-catalog.md#3",
+      "chunk_text": "illing and Refund Policy. Talks to the payment processor; never stores full card numbers.\nOwner: **Payments Core**.\n\n### audit-log\n\nRecords security-relevant events (sign-ins, role changes, connector edits, exports) for workspaces on Business and Enterprise plans.\nOwner: **Identity**.\n\n## 2. Teams\n\n| Team | Engineering lead | On-call channel | Working hours (Paris time) |\n|---|---|---|---|\n| Platform | Samuel Okafor | #oncall-platform | 24/7 rotation |\n| Identity | Priya Raman | #oncall-identity | 24/7 rotation |\n| Data Integrations | Tomasz Wójcik | #oncall-data-integrations | 08:00–20:00, weekdays |\n| Analytics Engine | Léa Fontaine | #oncall-analytics | 24/7 rotation |\n| Messaging | Inès Moreau | #oncall-messaging | 08:00–20:00, weekdays |\n| Payments Core | Jonas Berg | #oncall-payments",
+      "grade": "correct",
+      "notes": ""
+    },
+    {
+      "head": "KST-6010",
+      "relation": "escalates_to",
+      "tail": "Payments Core",
+      "chunk_id": "support-runbook-errors.md#10",
+      "chunk_text": "Refund Policy for retries, grace period and read-only rules. Support cannot take card details over e-mail or chat.\n**Escalate:** to Payments Core only if the customer shows that the bank approved the payment.\n\n### KST-6010 — Duplicate charge detected\n\n**User sees:** nothing; this code appears in the admin console when two charges for the same period are found.\n**Cause:** a retry and a manual payment went through for the same invoice.\n**Support action:** confirm the duplicate in the admin console and request a full refund of the second charge; billing errors are always refunded.\n**Escalate:** to Payments Core if more than three customers are affected on the same day (possible incident).\n",
+      "grade": "correct",
+      "notes": ""
+    },
+    {
+      "head": "Data Integrations",
+      "relation": "on_call_channel",
+      "tail": "#oncall-data-integrations",
+      "chunk_id": "service-catalog.md#3",
+      "chunk_text": "illing and Refund Policy. Talks to the payment processor; never stores full card numbers.\nOwner: **Payments Core**.\n\n### audit-log\n\nRecords security-relevant events (sign-ins, role changes, connector edits, exports) for workspaces on Business and Enterprise plans.\nOwner: **Identity**.\n\n## 2. Teams\n\n| Team | Engineering lead | On-call channel | Working hours (Paris time) |\n|---|---|---|---|\n| Platform | Samuel Okafor | #oncall-platform | 24/7 rotation |\n| Identity | Priya Raman | #oncall-identity | 24/7 rotation |\n| Data Integrations | Tomasz Wójcik | #oncall-data-integrations | 08:00–20:00, weekdays |\n| Analytics Engine | Léa Fontaine | #oncall-analytics | 24/7 rotation |\n| Messaging | Inès Moreau | #oncall-messaging | 08:00–20:00, weekdays |\n| Payments Core | Jonas Berg | #oncall-payments",
+      "grade": "correct",
+      "notes": ""
+    }
+  ]
+}

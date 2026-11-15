@@ -1,10 +1,17 @@
+import argparse
 import os
-import re
-import math
-from collections import Counter
 from pathlib import Path
-from openai import OpenAI
-from dotenv import load_dotenv
+import sys
+
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from retrieval.bm25 import BM25Index, BM25Retriever, tokenize as _tokenize
+from retrieval.chunks import (
+    chunk_document as shared_chunk_document,
+    load_chunks,
+    load_corpus,
+)
 
 # This script is the same RAG pipeline as ask_rag_google.py, with ONE difference: the retrieval.
 #
@@ -22,11 +29,6 @@ from dotenv import load_dotenv
 # for this to work, you need to set the GOOGLE_API_KEY environment variable
 # with your API key from https://aistudio.google.com/api-keys
 
-# Setup OpenAI client pointing to Google's OpenAI-compatible endpoint
-load_dotenv()
-api_key = os.getenv("GOOGLE_API_KEY")
-client = OpenAI(api_key=api_key, base_url="https://generativelanguage.googleapis.com/v1beta/openai/")
-
 # Gemini model used for generation. Any model listed at https://ai.google.dev/gemini-api/docs/models
 # (or returned by list_available_models() below) should work. Models get retired over time.
 # Validated as working on 2026-10-19: gemini-2.5-flash-lite, gemini-2.5-flash, gemini-3-flash-preview, gemini-3.5-flash-lite.
@@ -36,6 +38,17 @@ STREAM_ON = True
 
 # Use this function to list available models and their details
 def list_available_models():
+    from dotenv import load_dotenv
+    from openai import OpenAI
+
+    load_dotenv()
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise RuntimeError("Set GOOGLE_API_KEY to list Gemini models.")
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    )
     print("Available models:")
     models = client.models.list()
     for m in models:
@@ -49,71 +62,20 @@ CHUNK_SIZE = 800
 OVERLAP_PERCENT = 10
 MIN_PARAGRAPH_LENGTH = 20
 
-# BM25 settings (these are the usual default values)
-# BM25_K1: how quickly a word repeated in a chunk stops adding to the score.
-# BM25_B: how much longer-than-average chunks are penalised.
-BM25_K1 = 1.5
-BM25_B = 0.75
+
+def tokenize(text):
+    """Keep the original challenge import path while using shared tokenization."""
+    return _tokenize(text)
 
 
 # Chunking: exactly the same as in ask_rag_google.py
 def chunk_document(filepath):
-    with open(filepath, "r", encoding="utf-8") as f:
-        text = f.read()
-
-    # Watch out: paragraphs shorter than MIN_PARAGRAPH_LENGTH characters will be ignored
-    paragraphs = [p.strip() for p in text.split("\n\n") if len(p.strip()) >= MIN_PARAGRAPH_LENGTH]
-    text = "\n\n".join(paragraphs)
-
-    # Simple fixed-size chunking with overlap
-    overlap = CHUNK_SIZE * OVERLAP_PERCENT // 100
-    step = CHUNK_SIZE - overlap
-    return [text[i:i + CHUNK_SIZE] for i in range(0, len(text), step)]
-
-
-# BM25 works on words, not on meaning.
-# "What does error E47 mean?" -> ["what", "does", "error", "e47", "mean"]
-def tokenize(text):
-    return re.findall(r"\w+", text.lower())
-
-
-# A minimal BM25 index. It is cheap to build, so we rebuild it in memory at every run.
-class BM25Index:
-    def __init__(self, chunks):
-        self.chunks = chunks
-        # How many times each word appears in each chunk
-        self.word_counts = [Counter(tokenize(chunk)) for chunk in chunks]
-        self.chunk_lengths = [sum(counts.values()) for counts in self.word_counts]
-        self.average_length = sum(self.chunk_lengths) / len(chunks)
-        # In how many chunks each word appears
-        self.chunk_frequency = Counter()
-        for counts in self.word_counts:
-            self.chunk_frequency.update(counts.keys())
-
-    # Inverse document frequency: a word found in only a few chunks gets a high weight,
-    # a word found in almost every chunk ("the", "what", "error"...) gets a weight close to zero.
-    def idf(self, word):
-        n = len(self.chunks)
-        df = self.chunk_frequency[word]
-        return math.log((n - df + 0.5) / (df + 0.5) + 1)
-
-    # The score of one chunk: the sum, over the words of the query, of
-    # (weight of the word) x (how often it appears in the chunk, with diminishing returns and length normalisation)
-    def score(self, query, i):
-        counts = self.word_counts[i]
-        length_ratio = self.chunk_lengths[i] / self.average_length
-        total = 0.0
-        for word in tokenize(query):
-            tf = counts[word]
-            if tf == 0:
-                continue
-            total += self.idf(word) * tf * (BM25_K1 + 1) / (tf + BM25_K1 * (1 - BM25_B + BM25_B * length_ratio))
-        return total
-
-    def search(self, query, n_results):
-        scores = [self.score(query, i) for i in range(len(self.chunks))]
-        best = sorted(range(len(self.chunks)), key=lambda i: scores[i], reverse=True)[:n_results]
-        return [(self.chunks[i], scores[i]) for i in best]
+    return shared_chunk_document(
+        filepath,
+        chunk_size=CHUNK_SIZE,
+        overlap_percent=OVERLAP_PERCENT,
+        min_paragraph_length=MIN_PARAGRAPH_LENGTH,
+    )
 
 
 # get_rag_context(index, query, n_results=5) performs a BM25 search
@@ -123,10 +85,27 @@ def get_rag_context(index, query, n_results=5):
     print("BM25 scores of the retrieved chunks: " + ", ".join(f"{score:.2f}" for _, score in results))
     return "\n---\n".join(chunk for chunk, _ in results)
 
+
+def get_rag_results(index, query, n_results=5):
+    """Return BM25 results using the shared retrieval-result shape."""
+    return BM25Retriever(index).search(query, top_k=n_results)
+
+
 # Generation Logic: exactly the same as in ask_rag_google.py
 # Build a prompt that includes the retrieved context and the question,
 # and send it to the model to generate a response.
 def generate_response(question, context):
+    from dotenv import load_dotenv
+    from openai import OpenAI
+
+    load_dotenv()
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        raise RuntimeError("Set GOOGLE_API_KEY to generate an answer.")
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    )
     full_prompt = f"""
     You are a literary analyst. Using only the following excerpts from the book,
     answer the question provided. If the information is not in the excerpts, say you don't know.
@@ -156,32 +135,68 @@ def generate_response(question, context):
 
 # Execution
 def main():
+    parser = argparse.ArgumentParser(description="Run BM25 retrieval over a local document.")
+    parser.add_argument(
+        "--document",
+        type=Path,
+        default=DOCUMENT_FILE,
+        help="UTF-8 document or corpus directory (defaults to the Vellora manual)",
+    )
+    parser.add_argument(
+        "--question",
+        default="What does error E47 mean and how do I fix it?",
+        help="Question to retrieve evidence for",
+    )
+    parser.add_argument(
+        "--corpus",
+        help="Corpus name to use in results (defaults to the document or directory name)",
+    )
+    parser.add_argument("--top-k", type=int, default=5, help="Number of chunks to retrieve")
+    parser.add_argument(
+        "--retrieval-only",
+        action="store_true",
+        help="Print retrieved evidence without calling Gemini",
+    )
+    args = parser.parse_args()
+    document_file = args.document.resolve()
+    if not document_file.is_file() and not document_file.is_dir():
+        raise FileNotFoundError(f"document or corpus directory not found: {document_file}")
 
-    # Optional: List Google models
-    # list_available_models()
-
-    chunks = chunk_document(DOCUMENT_FILE)
+    chunks = (
+        load_corpus(document_file, corpus=args.corpus)
+        if document_file.is_dir()
+        else load_chunks(
+            document_file,
+            chunk_size=CHUNK_SIZE,
+            overlap_percent=OVERLAP_PERCENT,
+            min_paragraph_length=MIN_PARAGRAPH_LENGTH,
+            corpus=args.corpus,
+        )
+    )
     index = BM25Index(chunks)
-    print(f"Built a BM25 index of {len(chunks)} chunks from {DOCUMENT_FILE} (in memory).")
-
-    question = "What does error E47 mean and how do I fix it?"
+    print(f"Built a BM25 index of {len(chunks)} chunks from {document_file} (in memory).")
 
     print(f"\n--- RAG RETRIEVAL START ---")
-    context = get_rag_context(index, question, n_results=5)
+    results = get_rag_results(index, args.question, n_results=args.top_k)
+    if not results:
+        print("No chunks matched the query; no answer request was sent.")
+        return
+    print(
+        "BM25 scores of the retrieved chunks: "
+        + ", ".join(f"{result['score']:.2f}" for result in results)
+    )
+    context = "\n---\n".join(result["text"] for result in results)
 
     # Debug - print the retrieved context to verify it's working
     print(f"Retrieved context:\n{context}")
 
-    continue_processing = True
-    if continue_processing:
-        print(f"Retrieved relevant snippets. Sending to Gemini...")
-        print(f"--- RESPONSE ---\n")
+    if args.retrieval_only:
+        return
 
-        generate_response(question, context)
+    print("Retrieved relevant snippets. Sending to Gemini...")
+    print("--- RESPONSE ---\n")
+    generate_response(args.question, context)
 
 
 if __name__ == "__main__":
-  try:
     main()
-  except Exception as e:
-    print(f"An error occurred: {e}")

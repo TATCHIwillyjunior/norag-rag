@@ -41,28 +41,51 @@ excerpts. Retrieval and indexing run locally; the question and retrieved
 context are sent to Gemini for generation, so a Google API key and network
 access are needed for the complete run.
 
+The script also accepts a different corpus and question. For example, to test
+BM25 on the document used by the dense baseline without making an API call:
+
+```powershell
+python bm25/ask_bm25_rag_google.py --document docs/CrimeAndPunishment.txt --question "What does this say about Denis?" --retrieval-only
+```
+
+For a directory corpus, the script indexes sorted `.txt` and `.md` files and
+uses source-qualified IDs such as `guide.txt::0`, which align with the graph
+retriever's standalone chunking convention. Set `--corpus kestrel` when the
+directory name is not the corpus name used by the other retrievers.
+
+Use `--top-k` to change the number of retrieved chunks. Remove
+`--retrieval-only` when you want the excerpts sent to Gemini.
+
 ## Implementation
 
-The example uses a small BM25 implementation directly in the script rather
+The example uses the reusable implementation in `retrieval/bm25.py` rather
 than a separate search service:
 
-1. `chunk_document()` reads the document, filters short paragraphs, and creates
-   fixed-size chunks with overlap. Its chunking settings match the dense RAG
-   example.
-2. `tokenize()` lowercases text and extracts word-like tokens.
+1. The shared `chunk_document()` reads the document, filters short paragraphs,
+   and creates fixed-size chunks with overlap, matching the dense RAG example.
+2. `tokenize()` case-folds text and extracts word-like tokens, preserving
+   identifiers such as `E47`.
 3. `BM25Index` records each token's frequency in each chunk, the chunk lengths,
    the average chunk length, and the number of chunks containing each token.
-4. `search()` scores every chunk against the question and returns the
-   highest-scoring results. `get_rag_context()` joins the top five excerpts for
-   Gemini.
+4. `BM25Index.search()` retains the original `(text, score)` API. The
+   `BM25Retriever.search()` adapter returns the shared structured-result shape
+   for evaluation and fusion.
 
-The BM25 parameters are configured near the top of the script:
+The BM25 parameters are configured in `retrieval/bm25.py`:
 
 - `BM25_K1` controls how quickly repeated appearances of a word stop adding
   score.
 - `BM25_B` controls how strongly longer-than-average chunks are normalised.
 - `CHUNK_SIZE`, `OVERLAP_PERCENT`, and `MIN_PARAGRAPH_LENGTH` control
   chunking.
+
+At query time, each distinct query token contributes at most once. Tokens
+absent from every chunk have no effect, and a query with no matching tokens
+returns no results rather than unrelated zero-score chunks.
+
+The index is in memory and rebuilt for each run. Its IDs match the dense
+retriever's IDs when both use the same document and chunking settings. No
+incremental indexing or persistent BM25 index is implemented.
 
 Tokens that do not occur in any chunk do not affect the ranking: their term
 frequency is zero in every chunk. For this example, the rare token `e47` is a

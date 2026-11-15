@@ -1,8 +1,11 @@
 import os
+from pathlib import Path
 import chromadb
 from openai import OpenAI
 from dotenv import load_dotenv
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+from retrieval.chunks import load_chunks
+from retrieval.dense import ChromaDenseRetriever
 
 # This script demonstrates a simple "Needle in a Haystack" scenario,
 # where we have a large context of text (the "haystack")
@@ -42,7 +45,7 @@ def list_available_models():
 local_ef = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
 
 # The document to index and search
-DOCUMENT_FILE = "docs/CrimeAndPunishment.txt"
+DOCUMENT_FILE = Path(__file__).resolve().parent / "docs" / "CrimeAndPunishment.txt"
 
 # Chunking settings
 # CHUNK_SIZE is in characters. 800 characters are about 190 tokens, which stays under the
@@ -79,20 +82,12 @@ def index_document(filepath):
         return
 
     print(f"Indexing {filepath} locally (this will take a moment)...")
-    with open(filepath, "r", encoding="utf-8") as f:
-        text = f.read()
-    
-    # Watch out: paragraphs shorter than MIN_PARAGRAPH_LENGTH characters will be ignored
-    # Question: (when) does it make sense to ignore very short paragraphs?
-    paragraphs = [p.strip() for p in text.split("\n\n") if len(p.strip()) >= MIN_PARAGRAPH_LENGTH]
-    text = "\n\n".join(paragraphs)
-
-    # Simple fixed-size chunking with overlap:
-    # a window of CHUNK_SIZE characters slides over the text, moving forward by (CHUNK_SIZE - overlap)
-    # characters each time. Chunks can start or end in the middle of a word or a sentence.
-    overlap = CHUNK_SIZE * OVERLAP_PERCENT // 100
-    step = CHUNK_SIZE - overlap
-    chunks = [text[i:i + CHUNK_SIZE] for i in range(0, len(text), step)]
+    chunks = load_chunks(
+        filepath,
+        chunk_size=CHUNK_SIZE,
+        overlap_percent=OVERLAP_PERCENT,
+        min_paragraph_length=MIN_PARAGRAPH_LENGTH,
+    )
 
     # Indexing locally is much faster—no batching for quotas needed!
     # But ChromaDB accepts at most ~5000 chunks per call, so with small chunk sizes we add them in batches.
@@ -100,8 +95,16 @@ def index_document(filepath):
     for start in range(0, len(chunks), BATCH_SIZE):
         batch = chunks[start:start + BATCH_SIZE]
         collection.add(
-            documents=batch,
-            ids=[f"id_{i}" for i in range(start, start + len(batch))]
+            documents=[chunk.text for chunk in batch],
+            ids=[chunk.chunk_id for chunk in batch],
+            metadatas=[
+                {
+                    "source": chunk.source,
+                    "corpus": chunk.corpus,
+                    "chunk_index": start + offset,
+                }
+                for offset, chunk in enumerate(batch)
+            ],
         )
     print(f"Indexed {len(chunks)} chunks locally.")
 
@@ -109,10 +112,18 @@ def index_document(filepath):
 # get_rag_context(query, n_results=5) performs a similarity search in the ChromaDB collection 
 # to retrieve the most relevant snippets based on the query.
 def get_rag_context(query, n_results=5):
-    # Search the vector DB for the most relevant snippets
-    results = collection.query(query_texts=[query], n_results=n_results)
-    # Flatten the list of documents retrieved
-    return "\n---\n".join(results['documents'][0])
+    results = get_rag_results(query, n_results)
+    return "\n---\n".join(result["text"] for result in results)
+
+
+def get_rag_results(query, n_results=5):
+    """Return dense results using the shared retrieval-result shape."""
+    retriever = ChromaDenseRetriever(
+        collection,
+        source=str(DOCUMENT_FILE),
+        corpus=DOCUMENT_NAME,
+    )
+    return retriever.search(query, top_k=n_results)
 
 # Generation Logic
 # Build a prompt that includes the retrieved context and the question,
@@ -182,7 +193,4 @@ def main():
 # since the ChromaDB client is persistent and checks if the collection already has data before indexing again.
 
 if __name__ == "__main__":
-  try:
     main()
-  except Exception as e:
-    print(f"An error occurred: {e}")
