@@ -42,6 +42,38 @@ evaluation corpora are configured in `eval/corpora.json`:
 - `kestrel`: the five Kestrel Markdown documents in `corpus/`
 - `own`: `CrimeAndPunishment.txt`
 
+### Try a question in the Ask page
+
+The Ask page accepts a question you type. Select the matching corpus and try
+one of these examples:
+
+**Kestrel** (select the Kestrel documents):
+
+- "What does error KST-2044 mean and how do I fix it?" (exact identifier)
+- "What happens, step by step, when a customer's card payment fails?"
+  (information spread across the billing policy)
+- "Can I get a refund on my annual plan 45 days after it renewed?"
+  (check the current and previous policy versions)
+- "An old alert mentions mailman. Which team looks after that today, and which
+  channel should support use?" (multi-hop; enable `dense`, `bm25`, and `graph`)
+- "Is there a Kestrel mobile app for iPhone?" (not answered by the corpus)
+
+**Own corpus** (select `CrimeAndPunishment.txt`):
+
+- "What does Raskolnikov take to the pawnbroker?"
+- "Who introduces himself as a titular counsellor in the tavern?"
+- "Who is Lizaveta in relation to the pawnbroker?"
+- "What is the capital of Brazil?" (not answered by this corpus)
+
+These are also examples from the benchmark question files:
+[Kestrel](./eval/kestrel.jsonl) and [own](./eval/own.jsonl).
+
+### Run the benchmark questions
+
+The Evaluation page runs the benchmark questions for the selected corpus; you
+do not need to enter them individually. The same question sets can be run from
+PowerShell with the commands below.
+
 After changing corpus files directly or changing the chunk size/overlap,
 rebuild the index from the Ask page. Rebuild the Kestrel graph as well after
 changing its documents or chunk settings.

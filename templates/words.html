@@ -2,51 +2,91 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Words</title>
-<style>
-body { font-family: sans-serif; max-width: 1000px; margin: 20px auto; padding: 0 12px; }
-table { border-collapse: collapse; margin-bottom: 14px; }
-td, th { padding: 5px 8px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: top; }
-pre { white-space: pre-wrap; background: #f4f4f4; padding: 8px; }
-.err { color: #c00; }
-.miss { color: #c00; font-weight: bold; }
-.muted { color: #666; }
-button { margin-right: 6px; }
-.tabs button { padding: 6px 12px; }
-.tabs button.on { font-weight: bold; text-decoration: underline; }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='studio.css') }}">
 </head>
 <body>
-<p><a href="/">Ask</a> | <a href="/eval">Evaluation</a> | <a href="/words">Words</a></p>
-<h1>Words</h1>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="RAG Studio home">
+      <span class="brand-mark" aria-hidden="true">R</span>
+      <span class="brand-name">RAG Studio<small>V3 RETRIEVAL WORKSPACE</small></span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="/">Ask</a>
+      <a href="/eval">Evaluation</a>
+      <a href="/words" aria-current="page">Words</a>
+    </nav>
+  </div>
+</header>
 
-<p>Corpus <select id="corpus"></select> <span class="muted" id="stats"></span></p>
-<p class="muted">Words are lowercased and split on anything that is not a letter, digit or underscore. No stemming, no stop words removed. Counts are summed over chunks, so a word in an overlap zone is counted in both chunks.</p>
-<p class="err" id="error"></p>
+<main class="page-shell">
+  <section class="hero" aria-labelledby="page-title">
+    <div>
+      <p class="eyebrow">Corpus explorer</p>
+      <h1 id="page-title">See what your retriever sees.</h1>
+      <p class="hero-copy">Inspect the vocabulary, find the chunks behind a word, or see how a question's terms appear across your corpus.</p>
+    </div>
+    <span class="hero-chip"><span aria-hidden="true"></span>Transparent lexical analysis</span>
+  </section>
 
-<p class="tabs">
-<button id="tab-vocab" class="on">Vocabulary</button>
-<button id="tab-word">Word to chunks</button>
-<button id="tab-question">Question to words</button>
-</p>
+  <section class="card words-card" aria-label="Word analysis tools">
+    <div class="corpus-row">
+      <label class="field" for="corpus">Corpus
+        <select id="corpus"></select>
+      </label>
+      <span class="muted" id="stats"></span>
+    </div>
+    <p class="words-help">Tokens are lowercased and split on non-word characters. There is no stemming or stop-word removal. Counts are summed over chunks, so terms in overlapping text may count more than once.</p>
+    <p class="err" id="error" role="alert"></p>
 
-<div id="panel-vocab">
-<p>Contains <input id="vocabFilter" placeholder="(optional)"> <button id="vocabGo">Show</button> <span class="muted" id="vocabInfo"></span></p>
-<table id="vocabTable"></table>
-</div>
+    <div class="tabs" role="tablist" aria-label="Word analysis">
+      <button type="button" id="tab-vocab" class="on" role="tab">Vocabulary</button>
+      <button type="button" id="tab-word" role="tab">Word to chunks</button>
+      <button type="button" id="tab-question" role="tab">Question to words</button>
+    </div>
 
-<div id="panel-word" hidden>
-<p>Word <input id="wordInput"> <button id="wordGo">Find chunks</button> <span class="muted" id="wordInfo"></span></p>
-<table id="wordTable"></table>
-<div id="wordText"></div>
-</div>
+    <div id="panel-vocab" class="tool-panel" role="tabpanel">
+      <p>
+        <label class="field" for="vocabFilter">Filter words (optional)
+          <input id="vocabFilter" placeholder="Type part of a word">
+        </label>
+        <button type="button" id="vocabGo">Show vocabulary</button>
+        <span class="muted" id="vocabInfo"></span>
+      </p>
+      <table id="vocabTable"></table>
+    </div>
 
-<div id="panel-question" hidden>
-<p>Pick one <select id="qPick"></select></p>
-<p><input id="qInput" style="width:80%" placeholder="or type a question"> <button id="qGo">Analyse</button></p>
-<p class="muted" id="qInfo"></p>
-<table id="qTable"></table>
-</div>
+    <div id="panel-word" class="tool-panel" role="tabpanel" hidden>
+      <p>
+        <label class="field" for="wordInput">Find a word
+          <input id="wordInput" placeholder="For example: KST-2044">
+        </label>
+        <button type="button" id="wordGo">Find chunks</button>
+        <span class="muted" id="wordInfo"></span>
+      </p>
+      <table id="wordTable"></table>
+      <div id="wordText"></div>
+    </div>
+
+    <div id="panel-question" class="tool-panel" role="tabpanel" hidden>
+      <p>
+        <label class="field" for="qPick">Choose a benchmark question
+          <select id="qPick"></select>
+        </label>
+      </p>
+      <p>
+        <label class="field" for="qInput">Or enter a question
+          <input id="qInput" placeholder="Type a question to inspect its words">
+        </label>
+        <button type="button" id="qGo">Analyse question</button>
+      </p>
+      <p class="muted" id="qInfo"></p>
+      <table id="qTable"></table>
+    </div>
+  </section>
+</main>
 
 <script>
 function el(tag, text, cls) {
