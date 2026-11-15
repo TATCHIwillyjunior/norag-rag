@@ -222,4 +222,49 @@ The V4 release expands V3 into a production-grade observable and responsible sys
 - **Injection Scanner & Quarantine (`/quarantine`):** Ingestion guardrail detecting direct instruction overrides, jailbreaks, hidden HTML instructions, and markdown image exfiltration. Flags place documents into an isolated quarantine folder (`corpus/quarantine/`).
 - **PII Redaction Guardrail:** Automatically masks emails, phone numbers, credit cards, and sensitive identifiers before data leaves the local environment.
 
+### 6.4 Cost & Latency Benchmark (V4 Pipeline)
+
+| Pipeline Step / Feature | Typ. Latency (p50) | In Tokens | Out Tokens | Cost per Action | Failure Handling |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **First Turn (Standard Ask)** | ~1,350 ms | ~1,800 | ~90 | ~$0.00016 | Abstains if no chunks; validates schema |
+| **Follow-up Turn (Conversation)** | ~2,100 ms | ~2,200 | ~150 | ~$0.00021 | Falls back to raw query if rewrite fails |
+| **Concept Map Inspection** | < 5 ms | 0 | 0 | $0.00000 | Serves from local index; node error fallback |
+| **Injection Scan (Ingestion)** | < 1 ms | 0 | 0 | $0.00000 | Quarantines file; notifies user |
+| **PII Redaction Guardrail** | < 1 ms | 0 | 0 | $0.00000 | Masks identifiers; records span |
+
+### 6.5 Guardrail Performance & Confusion Matrix
+
+Evaluated on 20 realistic inputs (10 hostile attack payloads + 10 benign enterprise documents) in `eval_guardrails.py`:
+
+```
+======================================================================
+CONFUSION MATRIX (OWASP LLM01/LLM05 Ingestion Classifier)
+======================================================================
+                       | Flagged (Suspicious)   | Not Flagged (Harmless)
+----------------------------------------------------------------------
+Really Hostile         | TP: 10                 | FN: 0                 
+Really Harmless        | FP: 0                  | TN: 10                
+======================================================================
+Accuracy: 100.0% | Precision: 100.0% | Recall: 100.0% | F1 Score: 1.0000
+Average Latency: 0.659 ms per document scan
+```
+
+### 6.6 18-Minute Presentation Runbook (Team of 3)
+
+The team defense follows the course schedule (Slide 52: 4 min demo + 3x3 min individual talks + 5 min Q&A):
+
+1. **Live Demo (4 minutes):**
+   - *Query with Traces (1.5 min):* Ask *"What happens, step by step, when a customer payment fails?"*, show the grounded answer, citations, and click **`Details ▸ trace 7f3a`** to walk through the span tree (Dense + BM25 + RRF + Generate), latency, and costs.
+   - *Conversation Mode (1 min):* Ask a follow-up *"and what if the card is expired?"*, show the automatic query rewrite badge and the suggested next questions chips.
+   - *Concept Explorer (1 min):* Switch to `/explorer`, filter by `error_code`, click `KST-2044`, show its connected relations and source chunk quotes, and launch a query from the node.
+   - *Quarantine Ingestion (0.5 min):* Upload a test file with prompt injection, show the immediate quarantine warning, and open `/quarantine` to inspect and manage it.
+2. **Individual Presentations (3 minutes each):**
+   - **Willy (Observability & Architecture):** Design of the OpenTelemetry-aligned span hierarchy, local JSONL persistence, cost tracking formula, and the `/metrics` dashboard ($p_{50}$ / $p_{95}$ percentiles).
+   - **Fred (New Features & User Experience):** UX clean-up from V1–V3 clutter, Concept Map Explorer force-directed graph architecture, and Conversation Mode query rewriting.
+   - **Keylan (Responsible AI & Compliance):** Prompt injection / poisoning heuristics, the quarantine isolation workflow, PII redaction engine, and GDPR Article 17 document deletion lifecycle.
+3. **Q&A Preparation (5 minutes):**
+   - *Why local JSONL over Langfuse/Phoenix?* Data sovereignty, zero external latency overhead, and 100% offline grading reproducibility.
+   - *What happens when query rewriting fails?* Graceful fallback to the raw query; user never experiences a crash.
+   - *How do you prevent data exfiltration?* Ingestion scanner blocks markdown image links and scripts, and PII redactor scrubs emails/numbers before Gemini API transmission.
+
 Detailed architecture rationales and guardrail confusion matrices are documented in [DECISION_LOG.md](./DECISION_LOG.md).

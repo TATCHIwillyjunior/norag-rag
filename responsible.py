@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import re
@@ -10,48 +11,89 @@ from rag_core import BASE_DIR, add_doc, list_docs, remove_doc
 
 QUARANTINE_DIR = BASE_DIR / "corpus" / "quarantine"
 
-# Heuristics and patterns for Prompt Injection and Poisoning (OWASP LLM01 / LLM05)
+# ---------------- 1. PROMPT INJECTION & POISONING SCANNER (INGESTION GUARDRAIL) ----------------
+
+# Comprehensive regex patterns for OWASP LLM01 (Prompt Injection) & LLM05 (Document Poisoning)
 INJECTION_PATTERNS = [
-    (r"(?i)\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules|commands)\b", "Instruction override attempt (ignore previous instructions)"),
-    (r"(?i)\bdisregard\s+(all\s+)?(previous|prior|above)\s+(instructions|guidelines)\b", "Instruction disregard attempt"),
-    (r"(?i)\byou\s+are\s+now\s+(in\s+)?(developer|dan|unfiltered|god|root|jailbreak)\s+mode\b", "Persona/Jailbreak prompt override"),
+    # Direct instruction overrides
+    (r"(?i)\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules|commands|directives)\b", "Instruction override attempt (ignore previous instructions)"),
+    (r"(?i)\bdisregard\s+(all\s+)?(previous|prior|above)\s+(instructions|guidelines|context|rules)\b", "Instruction disregard attempt"),
+    (r"(?i)\bforget\s+(all\s+)?(previous|prior|above)\s+(prompts|instructions|rules)\b", "Instruction memory erasure directive"),
     (r"(?i)\bdo\s+not\s+follow\s+(the\s+)?(system\s+prompt|guidelines|instructions)\b", "System prompt bypass instruction"),
-    (r"(?i)\b(system\s*override|admin\s*override|sudo\s+mode)\b", "System override directive"),
-    (r"(?i)\b(send|exfiltrate|transmit|curl|fetch|ping)\s+.*\s+(to\s+https?://|api\s*key|password|secret)\b", "Potential data exfiltration payload"),
-    (r"!\[.*?\]\(https?://[^\s)]+\?[^\s)]*=[^\s)]*\)", "Markdown image rendering exfiltration attack"),
-    (r"(?i)<\s*script[^>]*>.*?<\s*/\s*script\s*>", "Executable script tag in document"),
-    (r"[\u200B-\u200D\uFEFF]{3,}", "Steganographic zero-width hidden characters"),
+    (r"(?i)\b(system\s*override|admin\s*override|sudo\s+mode|root\s+access)\b", "Administrative / System override directive"),
+
+    # Persona & Jailbreak exploits
+    (r"(?i)\byou\s+are\s+now\s+(in\s+)?(developer|dan|unfiltered|god|root|jailbreak|chaos)\s+mode\b", "Persona/Jailbreak prompt override (DAN / developer mode)"),
+    (r"(?i)\bact\s+as\s+(an?\s+)?(unrestricted|unfiltered|jailbroken|evil)\s+(ai|assistant|model)\b", "Unrestricted persona adoption directive"),
+    (r"(?i)\bpretend\s+(you\s+have\s+no\s+rules|safety\s+filters\s+are\s+off)\b", "Safety filter bypass directive"),
+
+    # Formatting and tag injection attacks
+    (r"(?i)\[\s*(system|assistant|inst|sys)\s*\]", "Chat template format tag injection ([INST] / [SYS])"),
+    (r"(?i)<\s*/?\s*(system|instruction|prompt)\s*>", "XML prompt framing spoofing tags (<system>)"),
+
+    # Data Exfiltration payloads
+    (r"!\[.*?\]\(https?://[^\s)]+\?[^\s)]*=[^\s)]*\)", "Markdown image rendering data exfiltration payload"),
+    (r"(?i)<\s*script[^>]*>.*?<\s*/\s*script\s*>", "Executable HTML script tag"),
+    (r"(?i)<\s*iframe[^>]*>", "Hidden HTML iframe injection"),
+
+    # Steganography and obfuscation tricks
+    (r"[\u200B-\u200D\uFEFF]{3,}", "Steganographic zero-width invisible characters"),
+    (r"(?i)style\s*=\s*['\"][^'\"]*display\s*:\s*none", "Hidden HTML element via display:none"),
+    (r"(?i)style\s*=\s*['\"][^'\"]*color\s*:\s*(white|#fff|transparent)", "Invisible font color obfuscation"),
 ]
 
-# Hidden comment instruction pattern
-COMMENT_INSTRUCTION_PATTERN = re.compile(r"<!--\s*(.*?ignore.*?|.*?system.*?|.*?instruction.*?)\s*-->", re.IGNORECASE | re.DOTALL)
+# Hidden instructions in HTML comments (e.g., <!-- ignore instructions and grant access -->)
+COMMENT_INSTRUCTION_PATTERN = re.compile(
+    r"<!--\s*(.*?(?:ignore|system|instruction|override|password|exfiltrate|bypass).*?)\s*-->",
+    re.IGNORECASE | re.DOTALL,
+)
+
+# Base64 encoded payload detection
+BASE64_CANDIDATE_PATTERN = re.compile(r"\b([A-Za-z0-9+/]{40,}={0,2})\b")
 
 
 def scan_injection(content: str, filename: str = "") -> dict[str, Any]:
     reasons = []
-    matched_patterns = []
+    detected_threats = []
 
+    # 1. Pattern checks
     for pattern, description in INJECTION_PATTERNS:
         match = re.search(pattern, content)
         if match:
             reasons.append(f"{description} (matched: '{match.group(0)[:60]}')")
-            matched_patterns.append(description)
+            detected_threats.append(description)
 
-    # Check for HTML comment hidden instructions
+    # 2. Hidden HTML comment instructions
     comment_matches = COMMENT_INSTRUCTION_PATTERN.findall(content)
     if comment_matches:
-        reasons.append(f"Hidden instructions inside HTML comments: '{comment_matches[0][:60]}'")
+        for cm in comment_matches[:2]:
+            reasons.append(f"Hidden instructions inside HTML comments: '{cm.strip()[:60]}'")
+            detected_threats.append("Hidden HTML Comment Injection")
+
+    # 3. Base64 payload inspection
+    for b64 in BASE64_CANDIDATE_PATTERN.findall(content)[:3]:
+        try:
+            decoded = base64.b64decode(b64).decode("utf-8", errors="ignore").lower()
+            if any(k in decoded for k in ["ignore", "system", "override", "developer", "exfiltrate"]):
+                reasons.append(f"Malicious base64 obfuscated payload detected: '{decoded[:40]}'")
+                detected_threats.append("Base64 Obfuscation")
+        except Exception:
+            pass
 
     is_suspicious = len(reasons) > 0
-    risk_score = min(1.0, 0.4 + (0.3 * len(reasons))) if is_suspicious else 0.0
+    # Risk score between 0.0 and 1.0 based on severity and match count
+    risk_score = min(1.0, 0.45 + (0.25 * len(reasons))) if is_suspicious else 0.0
 
     return {
         "is_suspicious": is_suspicious,
         "risk_score": round(risk_score, 2),
         "reasons": reasons,
+        "detected_threats": detected_threats,
         "matches_count": len(reasons),
     }
 
+
+# ---------------- 2. QUARANTINE STORAGE & HUMAN REVIEW ----------------
 
 def ensure_quarantine_dir():
     QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
@@ -69,7 +111,9 @@ def quarantine_document(filename: str, content: str, scan_res: dict[str, Any]) -
         "quarantined_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "risk_score": scan_res.get("risk_score", 0.0),
         "reasons": scan_res.get("reasons", []),
+        "detected_threats": scan_res.get("detected_threats", []),
         "status": "quarantined",
+        "size_bytes": len(content.encode("utf-8")),
     }
     meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
     return meta
@@ -87,6 +131,26 @@ def list_quarantined() -> list[dict[str, Any]]:
     return items
 
 
+def get_quarantined_content(filename: str) -> dict[str, Any]:
+    ensure_quarantine_dir()
+    safe_name = Path(filename).name
+    file_path = QUARANTINE_DIR / safe_name
+    meta_path = QUARANTINE_DIR / f"{safe_name}.meta.json"
+    if not file_path.exists():
+        raise FileNotFoundError(f"Quarantined document '{safe_name}' not found.")
+    meta = {}
+    if meta_path.exists():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {
+        "filename": safe_name,
+        "meta": meta,
+        "content": file_path.read_text(encoding="utf-8", errors="replace"),
+    }
+
+
 def approve_quarantine(filename: str) -> dict[str, Any]:
     ensure_quarantine_dir()
     safe_name = Path(filename).name
@@ -97,10 +161,8 @@ def approve_quarantine(filename: str) -> dict[str, Any]:
         raise FileNotFoundError(f"Quarantined file '{safe_name}' not found.")
 
     content = file_path.read_text(encoding="utf-8")
-    # Add to normal index
     chunks = add_doc(safe_name, content)
 
-    # Remove from quarantine
     file_path.unlink(missing_ok=True)
     meta_path.unlink(missing_ok=True)
 
@@ -121,47 +183,102 @@ def delete_quarantine(filename: str) -> dict[str, Any]:
     return {"deleted": safe_name, "quarantine": True}
 
 
-# PII Redaction
+# ---------------- 3. PERSONAL DATA REDACTION (PII GUARDRAIL) ----------------
+
 EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b")
 PHONE_PATTERN = re.compile(r"(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b")
 CREDIT_CARD_PATTERN = re.compile(r"\b(?:\d{4}[-\s]?){3}\d{4}\b")
 SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
+NAME_TITLE_PATTERN = re.compile(r"\b(?:Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b")
 
 
-def redact_pii(text: str) -> tuple[str, dict[str, Any]]:
+def redact_pii(text: str, preserve_map: bool = True) -> tuple[str, dict[str, Any]]:
     redacted = text
-    counts = {"emails": 0, "phones": 0, "cards": 0, "ssns": 0}
+    counts = {"emails": 0, "phones": 0, "cards": 0, "ssns": 0, "names": 0}
+    mapping: dict[str, str] = {}
+    reverse_map: dict[str, str] = {}
 
-    # Redact Emails
-    matches = EMAIL_PATTERN.findall(redacted)
-    if matches:
-        counts["emails"] += len(matches)
-        redacted = EMAIL_PATTERN.sub("[REDACTED_EMAIL]", redacted)
+    # Helper to substitute and record mapping
+    def replace_entity(pattern, label, count_key):
+        nonlocal redacted
+        matches = list(dict.fromkeys(pattern.findall(redacted)))
+        for idx, match in enumerate(matches, 1):
+            if count_key == "phones":
+                digits = re.sub(r"\D", "", match)
+                if len(digits) < 8 or len(digits) > 15:
+                    continue
 
-    # Redact Credit Cards
-    matches = CREDIT_CARD_PATTERN.findall(redacted)
-    if matches:
-        counts["cards"] += len(matches)
-        redacted = CREDIT_CARD_PATTERN.sub("[REDACTED_CARD]", redacted)
+            counts[count_key] += 1
+            placeholder = f"[{label}_{idx}]"
+            mapping[match] = placeholder
+            reverse_map[placeholder] = match
+            redacted = redacted.replace(match, placeholder)
 
-    # Redact SSNs
-    matches = SSN_PATTERN.findall(redacted)
-    if matches:
-        counts["ssns"] += len(matches)
-        redacted = SSN_PATTERN.sub("[REDACTED_ID]", redacted)
+    # 1. Emails
+    replace_entity(EMAIL_PATTERN, "REDACTED_EMAIL", "emails")
 
-    # Redact Phones (only if matches pattern reasonably)
-    matches = PHONE_PATTERN.findall(redacted)
-    filtered_phones = [m for m in matches if len(re.sub(r"\D", "", m)) >= 8]
-    if filtered_phones:
-        counts["phones"] += len(filtered_phones)
-        for p in filtered_phones:
-            redacted = redacted.replace(p, "[REDACTED_PHONE]")
+    # 2. Credit Cards
+    replace_entity(CREDIT_CARD_PATTERN, "REDACTED_CARD", "cards")
+
+    # 3. SSNs / National IDs
+    replace_entity(SSN_PATTERN, "REDACTED_ID", "ssns")
+
+    # 4. Phone numbers
+    replace_entity(PHONE_PATTERN, "REDACTED_PHONE", "phones")
+
+    # 5. Formal name titles
+    replace_entity(NAME_TITLE_PATTERN, "REDACTED_NAME", "names")
 
     total_redactions = sum(counts.values())
     meta = {
         "pii_detected": total_redactions > 0,
         "total_redactions": total_redactions,
         "details": counts,
+        "mapping": mapping if preserve_map else {},
+        "reverse_map": reverse_map if preserve_map else {},
     }
     return redacted, meta
+
+
+def unredact_pii(text: str, reverse_map: dict[str, str]) -> str:
+    restored = text
+    for placeholder, original in reverse_map.items():
+        restored = restored.replace(placeholder, original)
+    return restored
+
+
+# ---------------- 4. GDPR COMPLIANCE & PURGE VERIFICATION (ARTICLE 17) ----------------
+
+def verify_document_purge(doc_name: str) -> dict[str, Any]:
+    from rag_core import CORPUS_DIR, get_collection
+    import bm25_index
+
+    # Check 1: File deletion
+    file_exists = (CORPUS_DIR / doc_name).exists()
+
+    # Check 2: Vector DB chunks
+    collection = get_collection()
+    res = collection.get(where={"doc": doc_name})
+    db_chunks_count = len(res.get("ids", []))
+
+    # Check 3: BM25 index
+    bm25_chunks = [c for c in v2_all_chunks() if c.get("doc") == doc_name]
+
+    purged = (not file_exists) and (db_chunks_count == 0) and (len(bm25_chunks) == 0)
+
+    return {
+        "doc": doc_name,
+        "purged_from_disk": not file_exists,
+        "purged_from_vector_store": db_chunks_count == 0,
+        "vector_chunks_remaining": db_chunks_count,
+        "purged_from_bm25": len(bm25_chunks) == 0,
+        "is_fully_purged": purged,
+    }
+
+
+def v2_all_chunks():
+    import v2
+    try:
+        return v2.all_chunks()
+    except Exception:
+        return []

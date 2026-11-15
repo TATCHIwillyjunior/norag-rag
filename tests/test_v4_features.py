@@ -54,6 +54,17 @@ class FeaturesTests(unittest.TestCase):
         cleared = clear_session("test_sess_123")
         self.assertTrue(cleared)
 
+    def test_explorer_node_not_found(self):
+        details = get_node_details("completely_nonexistent_node_xyz_12345")
+        self.assertIn("error", details)
+
+    def test_rewrite_first_turn_is_standalone(self):
+        sess = ConversationSession("sess_empty")
+        query, tin, tout = conversation.rewrite_query(sess, "What is KST-2044?")
+        self.assertEqual(query, "What is KST-2044?")
+        self.assertEqual(tin, 0)
+        self.assertEqual(tout, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

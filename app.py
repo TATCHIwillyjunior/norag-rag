@@ -20,10 +20,14 @@ from rag_core import (
     RagError,
     Settings,
     add_doc,
+    corpus_names,
+    index_doc,
     list_docs,
     load_settings,
     rebuild_all,
     remove_doc,
+    reset_collection,
+    save_settings,
 )
 from tracing import Trace, record_trace
 
@@ -238,6 +242,7 @@ def docs_add():
     with idx_trace.span("index.doc") as s:
         s.set_attribute("doc", req.name)
         s.set_attribute("chunks", chunks)
+        s.set_attribute("embedding_time_ms", dur_ms)
     idx_trace.finish(outcome="indexed", status="ok")
     record_trace(idx_trace)
 
@@ -247,6 +252,14 @@ def docs_add():
 @app.get("/api/quarantine")
 def list_quarantine_docs():
     return jsonify({"quarantined": responsible.list_quarantined()})
+
+
+@app.get("/api/quarantine/<name>")
+def get_quarantine_doc(name: str):
+    try:
+        return jsonify(responsible.get_quarantined_content(name))
+    except FileNotFoundError as e:
+        raise RagError(404, "not_found", str(e))
 
 
 @app.post("/api/quarantine/approve")
@@ -279,12 +292,40 @@ def reindex():
         name="indexing.run",
         attributes={"chunk_size": settings.chunk_size, "overlap": settings.overlap_percent},
     )
-    with idx_trace.span("index.all") as s:
-        chunks = rebuild_all(settings)
-        s.set_attribute("total_chunks", chunks)
+
+    save_settings(settings)
+    reset_collection()
+    total_chunks = 0
+    docs = corpus_names()
+
+    # Track each document indexed as a span with duration and chunk count
+    for doc_name in docs:
+        t_doc = time.time()
+        with idx_trace.span("index.doc") as s:
+            cnt = index_doc(doc_name)
+            total_chunks += cnt
+            s.set_attribute("doc", doc_name)
+            s.set_attribute("chunks", cnt)
+            s.set_attribute("embedding_time_ms", round((time.time() - t_doc) * 1000, 2))
+
+    # Track concept graph extraction if present
+    gst = graph.stats()
+    if gst and gst.get("build_cost_total"):
+        with idx_trace.span("index.graph") as gs:
+            cost_info = gst.get("build_cost_total", {})
+            gs.set_attribute("entities", gst.get("entities", 0))
+            gs.set_attribute("relations", gst.get("relations", 0))
+            gs.set_attribute("graph_calls", cost_info.get("calls", 0))
+            gs.set_attribute("tokens_in", cost_info.get("in", 0))
+            gs.set_attribute("tokens_out", cost_info.get("out", 0))
+            gs.set_attribute("cost_usd", tracing.compute_cost(cost_info.get("in", 0), cost_info.get("out", 0)))
+
+    idx_trace.attributes["total_chunks"] = total_chunks
+    idx_trace.attributes["docs_count"] = len(docs)
     idx_trace.finish(outcome="indexed", status="ok")
     record_trace(idx_trace)
-    return jsonify({"chunks": chunks, "trace_id": idx_trace.trace_id})
+
+    return jsonify({"chunks": total_chunks, "trace_id": idx_trace.trace_id})
 
 
 # ---------------- QUERY & ASK ROUTE ----------------

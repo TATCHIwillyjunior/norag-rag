@@ -11,6 +11,7 @@
   --muted: #6b7c96;
   --line: #e2e8f0;
   --canvas: #f8fafc;
+  --teal: #087f8c;
   --teal-dark: #07626d;
   --rose: #ef4444;
   --amber: #f59e0b;
@@ -70,6 +71,12 @@ tr:last-child td { border-bottom: none; }
   display: inline-block; padding: 4px 10px; border-radius: 999px;
   font-size: 11px; font-weight: 700; background: #fee2e2; color: #991b1b;
 }
+.btn-inspect {
+  padding: 6px 12px; border-radius: 6px; border: 1px solid #087f8c;
+  background: #edf7f8; color: #07626d; font-weight: 600; cursor: pointer;
+  margin-right: 6px;
+}
+.btn-inspect:hover { background: #087f8c; color: white; }
 .btn-approve {
   padding: 6px 12px; border-radius: 6px; border: 1px solid #10b981;
   background: #ecfdf5; color: #065f46; font-weight: 600; cursor: pointer;
@@ -85,6 +92,18 @@ tr:last-child td { border-bottom: none; }
   padding: 16px; border-radius: 10px; border: 1px solid #fed7aa;
   background: #fff7ed; color: #9a3412; margin-bottom: 20px; font-size: 13px;
 }
+
+.modal {
+  display: none; position: fixed; inset: 0; z-index: 50;
+  background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  justify-content: center; align-items: center;
+}
+.modal-content {
+  background: white; border-radius: 12px; width: min(800px, 92%);
+  max-height: 85vh; display: flex; flex-direction: column; padding: 24px;
+  box-shadow: 0 16px 36px rgba(0,0,0,.15);
+}
+pre { overflow-y: auto; background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; }
 </style>
 </head>
 <body>
@@ -107,7 +126,7 @@ tr:last-child td { border-bottom: none; }
 
 <main class="container">
   <div class="header-row">
-    <h1>Responsible AI — Document Quarantine</h1>
+    <h1>Responsible AI — Document Quarantine & Safety</h1>
     <p>Ingestion guardrail monitoring against prompt injection, document poisoning (OWASP LLM01 / LLM05), and data exfiltration.</p>
   </div>
 
@@ -134,6 +153,22 @@ tr:last-child td { border-bottom: none; }
   </div>
 </main>
 
+<!-- Preview Content Modal -->
+<div class="modal" id="inspectModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <h2 id="modalFilename" style="margin:0;font-size:18px;">Inspect Document</h2>
+      <button onclick="closeModal()" style="border:none;background:none;font-size:22px;cursor:pointer;">✕</button>
+    </div>
+    <div id="modalMeta" style="margin-bottom:12px;font-size:13px;color:#991b1b;"></div>
+    <pre id="modalContent"></pre>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;">
+      <button class="btn-approve" id="modalApproveBtn">Approve & Index</button>
+      <button class="btn-delete" id="modalDeleteBtn">Delete Document</button>
+    </div>
+  </div>
+</div>
+
 <script>
 async function loadQuarantine() {
   try {
@@ -155,7 +190,8 @@ async function loadQuarantine() {
         <td><span class="badge-risk">Risk: ${q.risk_score}</span></td>
         <td><ul style="margin:0;padding-left:18px;color:#991b1b;font-size:12px;">${q.reasons.map(r => `<li>${r}</li>`).join("")}</ul></td>
         <td>
-          <button class="btn-approve" onclick="approveDoc('${q.filename}')">Approve & Index</button>
+          <button class="btn-inspect" onclick="inspectDoc('${q.filename}')">Inspect</button>
+          <button class="btn-approve" onclick="approveDoc('${q.filename}')">Approve</button>
           <button class="btn-delete" onclick="deleteDoc('${q.filename}')">Delete</button>
         </td>
       `;
@@ -164,6 +200,30 @@ async function loadQuarantine() {
   } catch (e) {
     console.error(e);
   }
+}
+
+async function inspectDoc(name) {
+  try {
+    const res = await fetch("/api/quarantine/" + encodeURIComponent(name));
+    const data = await res.json();
+    document.getElementById("modalFilename").textContent = "Quarantine Review: " + data.filename;
+    document.getElementById("modalMeta").innerHTML = `
+      <strong>Risk Score:</strong> ${data.meta.risk_score || "N/A"} ·
+      <strong>Reasons:</strong> ${(data.meta.reasons || []).join(", ")}
+    `;
+    document.getElementById("modalContent").textContent = data.content;
+
+    document.getElementById("modalApproveBtn").onclick = () => { closeModal(); approveDoc(name); };
+    document.getElementById("modalDeleteBtn").onclick = () => { closeModal(); deleteDoc(name); };
+
+    document.getElementById("inspectModal").style.display = "flex";
+  } catch (e) {
+    alert("Error reading file: " + e.message);
+  }
+}
+
+function closeModal() {
+  document.getElementById("inspectModal").style.display = "none";
 }
 
 async function approveDoc(name) {

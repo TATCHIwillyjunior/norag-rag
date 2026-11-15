@@ -9,7 +9,7 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 
 from rag_core import BASE_DIR, LLM_BASE_URL, LLM_MODEL, RagError
-from tracing import Span, Trace, record_trace
+from tracing import Span, Trace, compute_cost, record_trace
 
 SESSIONS_FILE = BASE_DIR / "data" / "conversation_sessions.json"
 
@@ -122,6 +122,7 @@ def rewrite_query(session: ConversationSession, raw_question: str, trace: Trace 
             span.set_attribute("rewritten_query", rewritten)
             span.set_attribute("tokens_in", tin)
             span.set_attribute("tokens_out", tout)
+            span.set_attribute("cost_usd", compute_cost(tin, tout))
             span.finish("ok")
     except Exception as e:
         if span:
@@ -166,6 +167,7 @@ def suggest_next_questions(standalone_query: str, answer: str, trace: Trace | No
             span.set_attribute("suggestions", suggestions)
             span.set_attribute("tokens_in", tin)
             span.set_attribute("tokens_out", tout)
+            span.set_attribute("cost_usd", compute_cost(tin, tout))
             span.finish("ok")
     except Exception as e:
         if span:

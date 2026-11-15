@@ -115,6 +115,16 @@ to `correct`, `wrong`, or `unsupported`, then summarize the grades:
 python graph_cli.py grades
 ```
 
+### Run the guardrail evaluation
+
+Run the responsible AI guardrail evaluation benchmark:
+
+```powershell
+python eval_guardrails.py
+```
+
+This runs the 20-sample hostile vs. harmless evaluation, prints the confusion matrix, and outputs metrics to `eval/results/guardrails_eval.json`.
+
 ### Run the retrieval evaluations
 
 The minimum configurations are:

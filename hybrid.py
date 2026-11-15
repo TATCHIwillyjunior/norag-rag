@@ -2,6 +2,8 @@ import inspect
 import time
 from typing import Any
 
+from pydantic import ValidationError
+
 import bm25_index
 import conversation
 import fusion
@@ -145,94 +147,121 @@ def ask_hybrid(
         },
     )
 
-    # 1. Responsible AI: PII Redaction Guardrail
-    redacted_question, pii_meta = responsible.redact_pii(question)
-    if pii_meta.get("pii_detected"):
-        with trace.span("guardrail.pii") as s:
-            s.set_attribute("redactions", pii_meta.get("details", {}))
-            s.set_attribute("total_redactions", pii_meta.get("total_redactions", 0))
-
-    # 2. Conversation Mode: Multi-turn Query Rewriting
-    standalone_query = redacted_question
-    session = None
-    if session_id:
-        session = conversation.get_or_create_session(session_id)
-        standalone_query, _, _ = conversation.rewrite_query(session, redacted_question, trace=trace)
-
-    # 3. Hybrid Search (Dense, BM25, Graph + RRF)
-    result = hybrid_search(
-        question=standalone_query,
-        docs=docs,
-        top_k=top_k,
-        retrievers=retrievers,
-        candidates=candidates,
-        rrf_k=rrf_k,
-        trace=trace,
-    )
-
-    if not result["chunks"]:
-        trace.finish(outcome="abstained", status="error")
-        record_trace(trace)
-        raise RagError(409, "no_index", "No chunk was found. Check the selected documents and retrievers.")
-
-    # 4. LLM Generation
-    gen_cm = trace.span("generate")
-    gen_span = gen_cm.__enter__()
     try:
-        out = rag_core.ask(standalone_query, docs, top_k, chunks=result["chunks"])
-        gen_span.set_attribute("model", rag_core.LLM_MODEL)
-        gen_span.set_attribute("status", out.get("status"))
-        if out.get("usage"):
-            tin = out["usage"].get("input", 0)
-            tout = out["usage"].get("output", 0)
-            gen_span.set_attribute("tokens_in", tin)
-            gen_span.set_attribute("tokens_out", tout)
-            gen_span.set_attribute("cost_usd", compute_cost(tin, tout))
-        gen_span.set_attribute("references", out.get("references", []))
-        gen_span.finish("ok")
+        # Step 1: Query processing & routing span
+        with trace.span("query.process") as s:
+            s.set_attribute("query_length", len(question))
+            s.set_attribute("routed_retrievers", list(retrievers))
+            s.set_attribute("selected_docs_count", len(docs))
+
+        # Step 2: Responsible AI PII Redaction Guardrail
+        redacted_question, pii_meta = responsible.redact_pii(question)
+        if pii_meta.get("pii_detected"):
+            with trace.span("guardrail.pii") as s:
+                s.set_attribute("redactions", pii_meta.get("details", {}))
+                s.set_attribute("total_redactions", pii_meta.get("total_redactions", 0))
+
+        # Step 3: Conversation Mode Multi-turn Query Rewriting
+        standalone_query = redacted_question
+        session = None
+        if session_id:
+            session = conversation.get_or_create_session(session_id)
+            standalone_query, _, _ = conversation.rewrite_query(session, redacted_question, trace=trace)
+
+        # Step 4: Hybrid Search (Dense, BM25, Graph + RRF)
+        result = hybrid_search(
+            question=standalone_query,
+            docs=docs,
+            top_k=top_k,
+            retrievers=retrievers,
+            candidates=candidates,
+            rrf_k=rrf_k,
+            trace=trace,
+        )
+
+        if not result["chunks"]:
+            trace.finish(outcome="abstained", status="ok")
+            record_trace(trace)
+            raise RagError(409, "no_index", "No chunk was found. Check the selected documents and retrievers.")
+
+        # Step 5: LLM Generation
+        gen_cm = trace.span("generate")
+        gen_span = gen_cm.__enter__()
+        try:
+            out = rag_core.ask(standalone_query, docs, top_k, chunks=result["chunks"])
+            gen_span.set_attribute("model", rag_core.LLM_MODEL)
+            gen_span.set_attribute("status", out.get("status"))
+            if out.get("usage"):
+                tin = out["usage"].get("input", 0)
+                tout = out["usage"].get("output", 0)
+                gen_span.set_attribute("tokens_in", tin)
+                gen_span.set_attribute("tokens_out", tout)
+                gen_span.set_attribute("cost_usd", compute_cost(tin, tout))
+            gen_span.set_attribute("references", out.get("references", []))
+            gen_span.finish("ok")
+        except RagError as e:
+            gen_span.set_attribute("error", str(e))
+            gen_span.finish("error")
+            outcome = "invalid" if e.code in ("invalid_model_output", "length") else "error"
+            trace.finish(outcome=outcome, status="error")
+            record_trace(trace)
+            raise
+        except Exception as e:
+            gen_span.set_attribute("error", str(e))
+            gen_span.finish("error")
+            trace.finish(outcome="error", status="error")
+            record_trace(trace)
+            raise
+        finally:
+            trace.current_span_id = gen_span.parent_span_id
+
+        # Step 6: Conversation Mode Suggested Next Questions
+        suggestions = []
+        if with_suggestions and out.get("status") == "answered":
+            suggestions = conversation.suggest_next_questions(standalone_query, out.get("answer", ""), trace=trace)
+
+        # Step 7: Outcome determination (answered vs abstained vs invalid)
+        if out.get("status") == "answered":
+            outcome = "answered"
+        elif out.get("status") in ("not_found", "abstained"):
+            outcome = "abstained"
+        else:
+            outcome = "invalid"
+
+        trace.finish(outcome=outcome, status="ok")
+        record_trace(trace)
+
+        if session:
+            session.add_turn(
+                user_question=question,
+                rewritten_query=standalone_query,
+                answer=out.get("answer", ""),
+                references=out.get("references", []),
+                trace_id=trace.trace_id,
+            )
+
+        found = {c["id"]: c["found_by"] for c in result["chunks"]}
+        out["reference_details"] = [{"id": r, "found_by": found.get(r, {})} for r in out["references"]]
+        out["retrieval"] = {
+            "retrievers": result["retrievers"],
+            "per_retriever": result["per_retriever"],
+            "graph_path": result["graph_path"],
+            "notes": result["notes"],
+            "timings_ms": result["timings_ms"],
+        }
+        out["total_ms"] = round((time.time() - started) * 1000)
+        out["trace_id"] = trace.trace_id
+        out["trace"] = trace.to_dict()
+        out["suggestions"] = suggestions
+        out["session_id"] = session.session_id if session else None
+        out["rewritten_query"] = standalone_query if standalone_query != question else None
+        out["pii_detected"] = pii_meta.get("pii_detected", False)
+
+        return out
+
+    except RagError:
+        raise
     except Exception as e:
-        gen_span.set_attribute("error", str(e))
-        gen_span.finish("error")
         trace.finish(outcome="error", status="error")
         record_trace(trace)
         raise
-    finally:
-        trace.current_span_id = gen_span.parent_span_id
-
-    # 5. Conversation Mode: Suggested Next Questions
-    suggestions = []
-    if with_suggestions and out.get("status") == "answered":
-        suggestions = conversation.suggest_next_questions(standalone_query, out.get("answer", ""), trace=trace)
-
-    # 6. Finalize session and trace
-    outcome = "answered" if out.get("status") == "answered" else "abstained"
-    trace.finish(outcome=outcome, status="ok")
-    record_trace(trace)
-
-    if session:
-        session.add_turn(
-            user_question=question,
-            rewritten_query=standalone_query,
-            answer=out.get("answer", ""),
-            references=out.get("references", []),
-            trace_id=trace.trace_id,
-        )
-
-    found = {c["id"]: c["found_by"] for c in result["chunks"]}
-    out["reference_details"] = [{"id": r, "found_by": found.get(r, {})} for r in out["references"]]
-    out["retrieval"] = {
-        "retrievers": result["retrievers"],
-        "per_retriever": result["per_retriever"],
-        "graph_path": result["graph_path"],
-        "notes": result["notes"],
-        "timings_ms": result["timings_ms"],
-    }
-    out["total_ms"] = round((time.time() - started) * 1000)
-    out["trace_id"] = trace.trace_id
-    out["trace"] = trace.to_dict()
-    out["suggestions"] = suggestions
-    out["session_id"] = session.session_id if session else None
-    out["rewritten_query"] = standalone_query if standalone_query != question else None
-    out["pii_detected"] = pii_meta.get("pii_detected", False)
-
-    return out

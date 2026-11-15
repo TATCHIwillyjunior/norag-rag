@@ -67,20 +67,18 @@ button:disabled { cursor: wait; opacity: .65; }
 h1 { margin: 0; font-size: 32px; letter-spacing: -.03em; }
 .hero-copy { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
 
-.workspace-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr); gap: 20px; align-items: start; }
+.workspace-grid { display: flex; flex-direction: column; gap: 24px; }
 .card {
   background: white; border: 1px solid var(--line); border-radius: 12px;
   padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.03);
 }
-.card h2 { margin: 0 0 12px; font-size: 18px; }
 
-.ask-card { grid-column: 1 / -1; }
 .ask-row { display: flex; gap: 10px; margin: 16px 0 8px; }
 .ask-input {
-  flex: 1; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px;
+  flex: 1; padding: 14px 18px; border: 1px solid var(--line); border-radius: 10px;
   font-size: 15px; outline: none; transition: border-color .15s;
 }
-.ask-input:focus { border-color: var(--teal); }
+.ask-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(8,127,140,.15); }
 .primary-btn {
   padding: 12px 24px; border-radius: 10px; border: none;
   background: linear-gradient(135deg, #087f8c, #3b82f6);
@@ -88,19 +86,43 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -.03em; }
 }
 .primary-btn:hover { opacity: .95; }
 
+.example-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+.example-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+.example-chip {
+  padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+  background: white; font-size: 12px; color: #475569; cursor: pointer; transition: all .15s;
+}
+.example-chip:hover { border-color: #94a3b8; background: #f1f5f9; color: #0f172a; }
+
 .conversation-bar {
   display: flex; align-items: center; justify-content: space-between;
   background: #f8fafc; border: 1px solid var(--line); border-radius: 8px;
-  padding: 8px 14px; margin-top: 10px; font-size: 13px;
+  padding: 8px 14px; margin-top: 12px; font-size: 13px;
 }
 .pill-btn {
-  padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+  padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line);
   background: white; font-size: 12px; font-weight: 600; cursor: pointer;
-  color: var(--teal-dark); transition: all .15s;
+  color: #334155; transition: all .15s;
 }
-.pill-btn:hover { background: #edf7f8; }
+.pill-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
 
-.suggestions-box { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); }
+.answer-card {
+  margin-top: 20px; padding: 22px; border: 1px solid #dce8f1;
+  border-radius: 12px; background: #ffffff; box-shadow: 0 6px 16px rgba(15,23,42,.04);
+}
+.answer-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.details-trace-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 6px; border: 1px solid #087f8c;
+  background: #edf7f8; color: #07626d; font-weight: 700; font-size: 12px;
+  cursor: pointer; transition: all .15s;
+}
+.details-trace-btn:hover { background: #087f8c; color: white; }
+
+.suggestions-box { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
 .suggestions-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
 .suggestion-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .suggestion-chip {
@@ -110,13 +132,14 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -.03em; }
 }
 .suggestion-chip:hover { background: #dbeafe; }
 
-.trace-button {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 6px; border: 1px solid #dce8f1;
-  background: #f8fafc; color: #334155; font-size: 12px; font-weight: 700;
-  cursor: pointer;
+.advanced-card {
+  border: 1px solid var(--line); border-radius: 12px; background: white;
+  padding: 16px 20px; margin-top: 10px;
 }
-.trace-button:hover { background: #eef2f6; border-color: #cbd5e1; }
+.advanced-summary {
+  font-weight: 700; font-size: 14px; color: #334155; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+}
 
 .trace-modal {
   display: none; position: fixed; inset: 0; z-index: 50;
@@ -124,7 +147,7 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -.03em; }
   justify-content: flex-end;
 }
 .trace-drawer {
-  width: min(650px, 100%); height: 100%; background: white;
+  width: min(680px, 100%); height: 100%; background: white;
   overflow-y: auto; padding: 28px; box-shadow: -8px 0 24px rgba(0,0,0,.15);
 }
 
@@ -132,12 +155,10 @@ h1 { margin: 0; font-size: 32px; letter-spacing: -.03em; }
 table { width: 100%; border-collapse: collapse; text-align: left; }
 th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); }
 th { font-size: 12px; text-transform: uppercase; color: var(--muted); }
-.retriever-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
 .field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
 .field input { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; }
 
 .box { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; }
-.box strong { color: #1e293b; }
 .warn { padding: 10px 12px; border: 1px solid #fed7aa; border-radius: 8px; background: #fff7ed; color: #9a3412; font-size: 13px; margin: 8px 0; }
 .err { color: #dc2626; font-size: 13px; margin: 8px 0; font-weight: 600; }
 pre { overflow: auto; white-space: pre-wrap; padding: 12px; border-radius: 8px; background: #f1f5f9; font-size: 12px; font-family: monospace; }
@@ -166,18 +187,53 @@ pre { overflow: auto; white-space: pre-wrap; padding: 12px; border-radius: 8px; 
     <div>
       <p class="eyebrow">Enterprise Local Knowledge Workspace</p>
       <h1>Ask your documents.</h1>
-      <p class="hero-copy">Dense embeddings, BM25 keyword search, and Concept Graph with full observability and responsible AI guardrails.</p>
+      <p class="hero-copy">Grounded answers from your company documentation with full observability and responsible AI protection.</p>
     </div>
   </section>
 
   <div class="workspace-grid">
-    <!-- Documents Card -->
-    <section class="card documents-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h2 style="margin:0;">Documents</h2>
-        <label class="pill-btn" style="cursor:pointer;" for="file">+ Upload
-          <input type="file" id="file" accept=".md,.txt" multiple style="display:none;">
+    <!-- Main Search & Conversation Area (Primary First-Time UX) -->
+    <section class="card">
+      <div class="ask-row">
+        <input id="question" class="ask-input" placeholder="Ask a question about your documents..." autocomplete="off">
+        <button class="primary-btn" id="askBtn">Ask Question</button>
+      </div>
+
+      <!-- Quick Example Prompt Chips for Non-Programmers -->
+      <div class="example-chips">
+        <span class="example-label">Examples:</span>
+        <button class="example-chip" onclick="askExample('What does error KST-2044 mean and how do I fix it?')">Error KST-2044 fix</button>
+        <button class="example-chip" onclick="askExample('What happens, step by step, when a customer card payment fails?')">Card payment failure steps</button>
+        <button class="example-chip" onclick="askExample('Can I get a refund on my annual plan 45 days after it renewed?')">Refund after 45 days renewal</button>
+        <button class="example-chip" onclick="askExample('Who introduces himself as a titular counsellor in the tavern?')">Crime & Punishment tavern scene</button>
+      </div>
+
+      <div class="conversation-bar">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer;">
+          <input type="checkbox" id="convMode" checked>
+          Conversation Mode (Multi-turn memory & follow-ups)
         </label>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span style="font-size:12px;color:var(--muted);" id="turnCount">New session</span>
+          <button class="pill-btn" onclick="resetSession()">↻ New Chat</button>
+        </div>
+      </div>
+
+      <p style="color:var(--muted);font-size:13px;margin:8px 0 0;" id="busy"></p>
+      <p class="err" id="error"></p>
+      <div id="result"></div>
+    </section>
+
+    <!-- Documents Selection Card -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h2 style="margin:0;font-size:17px;">Active Documents</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="pill-btn" onclick="toggleSelectAll()">Toggle Select All</button>
+          <label class="pill-btn" style="cursor:pointer;" for="file">+ Upload Document
+            <input type="file" id="file" accept=".md,.txt" multiple style="display:none;">
+          </label>
+        </div>
       </div>
       <div class="table-wrap">
         <table id="docs"></table>
@@ -185,56 +241,32 @@ pre { overflow: auto; white-space: pre-wrap; padding: 12px; border-radius: 8px; 
       <div id="quarantineAlert" style="display:none;margin-top:12px;" class="warn"></div>
     </section>
 
-    <!-- Settings Card -->
-    <section class="card settings-card">
-      <h2>Retrieval Setup</h2>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <!-- Collapsible Advanced Settings (Cleans up clutter for non-programmers) -->
+    <details class="advanced-card">
+      <summary class="advanced-summary">⚙️ Advanced Search & Index Controls</summary>
+      <div style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;">
         <label class="field">Chunk size
           <input type="number" id="chunkSize" value="800" min="100" max="4000">
         </label>
         <label class="field">Overlap (%)
           <input type="number" id="overlap" value="10" min="0" max="50">
         </label>
+        <label class="field">Results to retrieve (top-k)
+          <input type="number" id="topK" value="5" min="1" max="20">
+        </label>
       </div>
-      <button class="pill-btn" style="width:100%;padding:8px;" id="rebuildBtn">Rebuild Index</button>
-      <p style="font-size:12px;color:var(--muted);margin:8px 0;" id="indexInfo"></p>
 
-      <label class="field" style="margin-top:12px;">Results to retrieve (top-k)
-        <input type="number" id="topK" value="5" min="1" max="20">
-      </label>
-
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--muted);margin:14px 0 6px;">Retrievers</div>
-      <div class="retriever-list">
+      <div style="margin:14px 0 6px;font-size:12px;font-weight:700;text-transform:uppercase;color:var(--muted);">Active Retrievers</div>
+      <div style="display:flex;gap:18px;margin-bottom:12px;">
         <label><input type="checkbox" id="r-dense" checked> Dense Embeddings</label>
         <label><input type="checkbox" id="r-bm25" checked> BM25 Keyword Search</label>
-        <label><input type="checkbox" id="r-graph"> Concept Graph <span style="color:var(--muted);font-size:11px;">(Kestrel)</span></label>
-      </div>
-      <p style="font-size:12px;color:var(--muted);" id="graphInfo"></p>
-    </section>
-
-    <!-- Ask & Conversation Card -->
-    <section class="card ask-card">
-      <h2>Conversation & Query</h2>
-      <div class="conversation-bar">
-        <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer;">
-          <input type="checkbox" id="convMode" checked>
-          Conversation Mode (Multi-turn memory & rewriting)
-        </label>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span style="font-size:12px;color:var(--muted);" id="turnCount">New session</span>
-          <button class="pill-btn" onclick="resetSession()">↻ Reset Chat</button>
-        </div>
+        <label><input type="checkbox" id="r-graph"> Concept Graph (Kestrel)</label>
       </div>
 
-      <div class="ask-row">
-        <input id="question" class="ask-input" placeholder="Ask a question or follow-up about your documents..." autocomplete="off">
-        <button class="primary-btn" id="askBtn">Ask Question</button>
-      </div>
-
-      <p style="color:var(--muted);font-size:13px;" id="busy"></p>
-      <p class="err" id="error"></p>
-      <div id="result"></div>
-    </section>
+      <button class="pill-btn" style="padding:8px 16px;" id="rebuildBtn">Rebuild Indices</button>
+      <p style="font-size:12px;color:var(--muted);margin:8px 0 0;" id="indexInfo"></p>
+      <p style="font-size:12px;color:var(--muted);margin:4px 0 0;" id="graphInfo"></p>
+    </details>
   </div>
 </main>
 
@@ -242,7 +274,7 @@ pre { overflow: auto; white-space: pre-wrap; padding: 12px; border-radius: 8px; 
 <div class="trace-modal" id="traceModal" onclick="if(event.target===this)closeTrace()">
   <div class="trace-drawer" id="traceDrawer">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h2 id="modal-trace-title" style="margin:0;font-size:20px;">Trace Breakdown</h2>
+      <h2 id="modal-trace-title" style="margin:0;font-size:20px;">Trace Details</h2>
       <button onclick="closeTrace()" style="border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
     </div>
     <div id="modal-trace-body"></div>
@@ -313,6 +345,20 @@ function resetSession() {
   document.getElementById("result").replaceChildren();
 }
 
+function askExample(q) {
+  document.getElementById("question").value = q;
+  document.getElementById("askBtn").click();
+}
+
+function toggleSelectAll() {
+  if (selected.size === docs.length) {
+    selected.clear();
+  } else {
+    selected = new Set(docs.map(d => d.name));
+  }
+  renderDocs();
+}
+
 function renderDocs() {
   const t = document.getElementById("docs");
   t.replaceChildren();
@@ -359,8 +405,8 @@ async function loadGraphInfo() {
   try {
     const g = await api("/api/graph/stats");
     document.getElementById("graphInfo").textContent = g.stats
-      ? "Graph: " + g.stats.entities + " entities, " + g.stats.relations + " relations."
-      : "Graph not built yet (run graph_cli.py build).";
+      ? "Concept Graph: " + g.stats.entities + " entities, " + g.stats.relations + " relations."
+      : "Concept Graph not built yet (run python graph_cli.py build).";
   } catch (e) {}
 }
 
@@ -374,7 +420,7 @@ function chunkHeader(c) {
 
 function renderPath(path) {
   const box = el("div", undefined, "box");
-  box.appendChild(el("strong", "Concept Graph Path Traversal"));
+  box.appendChild(el("strong", "Concept Graph Traversal"));
   const ents = path.entities.map(e => e.name + " (" + e.type + ")");
   box.appendChild(el("p", "Entities found in question: " + (ents.length ? ents.join(", ") : "none")));
   if (path.edges.length) {
@@ -391,59 +437,71 @@ function renderResult(r) {
   const box = document.getElementById("result");
   box.replaceChildren();
 
-  // Answer Title and Trace Button
-  const headerDiv = document.createElement("div");
-  headerDiv.style.cssText = "display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;";
-  headerDiv.appendChild(el("h2", r.status === "not_found" ? "Answer (not found)" : "Answer", undefined));
-
-  if (r.trace_id) {
-    const traceBtn = document.createElement("button");
-    traceBtn.className = "trace-button";
-    traceBtn.innerHTML = `🔍 Trace Details (${r.trace_id})`;
-    traceBtn.onclick = () => openTraceDrawer(r.trace);
-    headerDiv.appendChild(traceBtn);
-  }
-  box.appendChild(headerDiv);
+  const card = document.createElement("div");
+  card.className = "answer-card";
 
   if (r.rewritten_query) {
     const rew = el("div", "Rewritten standalone query: \"" + r.rewritten_query + "\"", "warn");
     rew.style.background = "#f0fdf4";
     rew.style.borderColor = "#bbf7d0";
     rew.style.color = "#166534";
-    box.appendChild(rew);
+    card.appendChild(rew);
   }
 
   if (r.pii_detected) {
     const piiAlert = el("div", "Privacy Guardrail: Personal data detected and redacted before external LLM transmission.", "warn");
-    box.appendChild(piiAlert);
+    card.appendChild(piiAlert);
   }
 
   const ansP = el("p", r.answer);
   ansP.style.fontSize = "16px";
   ansP.style.lineHeight = "1.7";
   ansP.style.color = "#1e293b";
-  box.appendChild(ansP);
+  ansP.style.margin = "0 0 12px";
+  card.appendChild(ansP);
 
-  (r.warnings || []).forEach(w => box.appendChild(el("p", w, "warn")));
-  (r.retrieval?.notes || []).forEach(w => box.appendChild(el("p", w, "warn")));
+  (r.warnings || []).forEach(w => card.appendChild(el("p", w, "warn")));
+  (r.retrieval?.notes || []).forEach(w => card.appendChild(el("p", w, "warn")));
 
   // References list
   if (r.reference_details && r.reference_details.length) {
-    const p = el("p", "Cited Evidence: ");
+    const p = el("div");
     p.style.fontWeight = "600";
+    p.style.fontSize = "13px";
+    p.style.margin = "12px 0 6px";
+    p.textContent = "References: ";
     r.reference_details.forEach(ref => {
-      const b = el("button", ref.id + (Object.keys(ref.found_by).length ? "  (" + foundByText(ref.found_by) + ")" : ""), "pill-btn");
+      const b = el("button", ref.id + (Object.keys(ref.found_by).length ? " (" + foundByText(ref.found_by) + ")" : ""), "pill-btn");
       b.style.margin = "4px 4px 0 0";
       b.onclick = () => { openRef = openRef === ref.id ? "" : ref.id; renderResult(r); };
       p.appendChild(b);
     });
-    box.appendChild(p);
+    card.appendChild(p);
   }
 
   const opened = (r.chunks || []).find(c => c.id === openRef);
-  if (opened) box.appendChild(el("pre", chunkHeader(opened) + "\n\n" + opened.text));
+  if (opened) card.appendChild(el("pre", chunkHeader(opened) + "\n\n" + opened.text));
 
-  if (r.retrieval?.graph_path) box.appendChild(renderPath(r.retrieval.graph_path));
+  if (r.retrieval?.graph_path) card.appendChild(renderPath(r.retrieval.graph_path));
+
+  // Footer with exact Slide 26 specification: Details ▸ trace 7f3a
+  const footer = document.createElement("div");
+  footer.className = "answer-footer";
+
+  const statusText = document.createElement("span");
+  statusText.style.fontSize = "12px";
+  statusText.style.color = "var(--muted)";
+  statusText.textContent = `${r.total_ms} ms · ${r.status === 'answered' ? 'Answered' : 'Abstained'}`;
+  footer.appendChild(statusText);
+
+  if (r.trace_id) {
+    const traceBtn = document.createElement("button");
+    traceBtn.className = "details-trace-btn";
+    traceBtn.innerHTML = `Details ▸ trace ${r.trace_id}`;
+    traceBtn.onclick = () => openTraceDrawer(r.trace);
+    footer.appendChild(traceBtn);
+  }
+  card.appendChild(footer);
 
   // Suggested Next Questions
   if (r.suggestions && r.suggestions.length) {
@@ -463,12 +521,15 @@ function renderResult(r) {
       chips.appendChild(chip);
     });
     sugBox.appendChild(chips);
-    box.appendChild(sugBox);
+    card.appendChild(sugBox);
   }
+
+  box.appendChild(card);
 
   // Chunks collapsible details
   const details = el("details");
-  details.appendChild(el("summary", "Retrieved Chunks Provenance (" + (r.chunks || []).length + ")"));
+  details.style.marginTop = "14px";
+  details.appendChild(el("summary", "Retrieved Chunks Evidence (" + (r.chunks || []).length + ")"));
   (r.chunks || []).forEach(c => details.appendChild(el("pre", chunkHeader(c) + "\n\n" + c.text)));
   box.appendChild(details);
 }
@@ -538,7 +599,7 @@ document.getElementById("file").onchange = (e) => {
   });
 };
 
-document.getElementById("rebuildBtn").onclick = () => run("Rebuilding index...", async () => {
+document.getElementById("rebuildBtn").onclick = () => run("Rebuilding indices...", async () => {
   await api("/api/reindex", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
