@@ -20,6 +20,9 @@ __pycache__/
 # ChromaDB persistent storage
 chroma_db/
 
+# Runtime traces
+data/traces.jsonl
+
 # OS/editor files
 .DS_Store
 .vscode/

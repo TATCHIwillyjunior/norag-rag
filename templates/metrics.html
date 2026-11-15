@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Observability & Metrics - RAG V4</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='studio.css') }}">
+<style>
+:root {
+  --ink: #17243b;
+  --muted: #6b7c96;
+  --line: #e2e8f0;
+  --surface: #ffffff;
+  --canvas: #f8fafc;
+  --teal: #087f8c;
+  --teal-dark: #07626d;
+  --blue: #3b82f6;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --rose: #ef4444;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font: 14px/1.55 "Segoe UI", Inter, system-ui, sans-serif;
+}
+a { color: inherit; text-decoration: none; }
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, .95);
+  backdrop-filter: blur(12px);
+}
+.topbar-inner {
+  width: min(1200px, calc(100% - 40px));
+  height: 64px;
+  margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, #087f8c, #3b82f6);
+  color: white; font-weight: 800; font-size: 18px;
+  display: grid; place-items: center;
+}
+.brand-name { font-weight: 750; font-size: 15px; }
+.brand-name small { display: block; font-size: 10px; color: var(--muted); letter-spacing: .08em; }
+.nav { display: flex; gap: 6px; }
+.nav a {
+  padding: 8px 12px; border-radius: 8px; font-weight: 600; color: var(--muted);
+  transition: all .15s ease;
+}
+.nav a:hover, .nav a[aria-current="page"] { background: #edf7f8; color: var(--teal-dark); }
+.container { width: min(1200px, calc(100% - 40px)); margin: 32px auto 60px; }
+
+.header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+.header-row h1 { margin: 0 0 6px; font-size: 28px; letter-spacing: -.03em; }
+.header-row p { margin: 0; color: var(--muted); }
+.refresh-btn {
+  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line);
+  background: white; font-weight: 600; cursor: pointer;
+}
+.refresh-btn:hover { background: #f1f5f9; }
+
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: white; border: 1px solid var(--line); border-radius: 12px;
+  padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,.03);
+}
+.stat-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.stat-val { font-size: 28px; font-weight: 800; margin: 8px 0 4px; color: var(--ink); }
+.stat-sub { font-size: 12px; color: var(--muted); }
+
+.card {
+  background: white; border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.03);
+}
+.card h2 { margin: 0 0 16px; font-size: 18px; }
+
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+tr:last-child td { border-bottom: none; }
+.badge {
+  display: inline-block; padding: 3px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+}
+.badge-ok { background: #d1fae5; color: #065f46; }
+.badge-warn { background: #fef3c7; color: #92400e; }
+.badge-err { background: #fee2e2; color: #991b1b; }
+
+.trace-modal {
+  display: none; position: fixed; inset: 0; z-index: 50;
+  background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  justify-content: flex-end;
+}
+.trace-drawer {
+  width: min(650px, 100%); height: 100%; background: white;
+  overflow-y: auto; padding: 28px; box-shadow: -8px 0 24px rgba(0,0,0,.15);
+}
+pre { background: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 12px; overflow-x: auto; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">
+      <div class="brand-mark">R</div>
+      <div class="brand-name">RAG Studio<small>V4 FINAL OBSERVABLE RELEASE</small></div>
+    </a>
+    <nav class="nav">
+      <a href="/">Ask & Chat</a>
+      <a href="/explorer">Concept Explorer</a>
+      <a href="/metrics" aria-current="page">Metrics</a>
+      <a href="/quarantine">Quarantine</a>
+      <a href="/eval">Evaluation</a>
+      <a href="/words">Words</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <div class="header-row">
+    <div>
+      <h1>Pipeline Observability & Metrics</h1>
+      <p>Aggregated real-time latency percentiles, cost control, token volume, and execution traces.</p>
+    </div>
+    <button class="refresh-btn" onclick="loadMetrics()">↻ Refresh Metrics</button>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Questions</div>
+      <div class="stat-val" id="metric-total-requests">0</div>
+      <div class="stat-sub"><span id="metric-answered">0</span> answered · <span id="metric-abstained">0</span> abstained</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Latency p50 (Median)</div>
+      <div class="stat-val" id="metric-p50">0 ms</div>
+      <div class="stat-sub">Typical user experience</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Latency p95</div>
+      <div class="stat-val" id="metric-p95">0 ms</div>
+      <div class="stat-sub">Tail latency SLA</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Cost</div>
+      <div class="stat-val" id="metric-cost">$0.00</div>
+      <div class="stat-sub"><span id="metric-tokens">0</span> total tokens</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Step-by-Step Latency Breakdown</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Span / Component</th>
+          <th>Executions</th>
+          <th>p50 Latency</th>
+          <th>p95 Latency</th>
+        </tr>
+      </thead>
+      <tbody id="steps-tbody">
+        <tr><td colspan="4" style="text-align:center;color:var(--muted)">Loading latency data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Recent Execution Traces</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Trace ID</th>
+          <th>Operation</th>
+          <th>Outcome</th>
+          <th>Latency</th>
+          <th>Tokens</th>
+          <th>Cost</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="traces-tbody">
+        <tr><td colspan="7" style="text-align:center;color:var(--muted)">Loading traces...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div class="trace-modal" id="traceModal" onclick="if(event.target===this)closeTrace()">
+  <div class="trace-drawer" id="traceDrawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 id="modal-trace-id" style="margin:0;font-size:20px;">Trace Details</h2>
+      <button onclick="closeTrace()" style="border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div id="modal-trace-body"></div>
+  </div>
+</div>
+
+<script>
+async function loadMetrics() {
+  try {
+    const res = await fetch("/api/metrics");
+    const m = await res.json();
+    document.getElementById("metric-total-requests").textContent = m.total_requests;
+    document.getElementById("metric-answered").textContent = m.outcomes.answered;
+    document.getElementById("metric-abstained").textContent = m.outcomes.abstained;
+    document.getElementById("metric-p50").textContent = Math.round(m.latency.overall_p50) + " ms";
+    document.getElementById("metric-p95").textContent = Math.round(m.latency.overall_p95) + " ms";
+    document.getElementById("metric-cost").textContent = "$" + m.cost.total_usd.toFixed(4);
+    document.getElementById("metric-tokens").textContent = m.tokens.total.toLocaleString();
+
+    const tbody = document.getElementById("steps-tbody");
+    tbody.innerHTML = "";
+    const steps = m.latency.by_step;
+    if (Object.keys(steps).length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">No step metrics recorded yet.</td></tr>';
+    } else {
+      for (const [name, s] of Object.entries(steps)) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${name}</strong></td>
+          <td>${s.count}</td>
+          <td>${Math.round(s.p50)} ms</td>
+          <td>${Math.round(s.p95)} ms</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  loadTraces();
+}
+
+async function loadTraces() {
+  try {
+    const res = await fetch("/api/traces?limit=25");
+    const data = await res.json();
+    const tbody = document.getElementById("traces-tbody");
+    tbody.innerHTML = "";
+    if (!data.traces || data.traces.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted)">No traces recorded yet. Try asking a question!</td></tr>';
+      return;
+    }
+    data.traces.forEach(t => {
+      const tr = document.createElement("tr");
+      let outcomeBadge = '<span class="badge badge-ok">answered</span>';
+      if (t.outcome === 'abstained') outcomeBadge = '<span class="badge badge-warn">abstained</span>';
+      if (t.outcome === 'error' || t.status === 'error') outcomeBadge = '<span class="badge badge-err">error</span>';
+      if (t.outcome === 'indexed') outcomeBadge = '<span class="badge" style="background:#e0e7ff;color:#3730a3">indexed</span>';
+
+      const tin = t.attributes?.tokens_in || 0;
+      const tout = t.attributes?.tokens_out || 0;
+      const cost = t.attributes?.cost_usd ? "$" + t.attributes.cost_usd.toFixed(5) : "$0.00";
+
+      tr.innerHTML = `
+        <td><code>${t.trace_id}</code></td>
+        <td>${t.name}</td>
+        <td>${outcomeBadge}</td>
+        <td>${Math.round(t.duration_ms)} ms</td>
+        <td>${tin + tout}</td>
+        <td>${cost}</td>
+        <td><button class="refresh-btn" style="padding:4px 8px;font-size:12px;" onclick="viewTrace('${t.trace_id}')">Open Spans</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function viewTrace(traceId) {
+  try {
+    const res = await fetch("/api/traces/" + traceId);
+    const t = await res.json();
+    document.getElementById("modal-trace-id").textContent = "Trace " + t.trace_id + " (" + t.name + ")";
+    const b = document.getElementById("modal-trace-body");
+    b.innerHTML = `
+      <p><strong>Status:</strong> ${t.status} | <strong>Outcome:</strong> ${t.outcome} | <strong>Duration:</strong> ${t.duration_ms} ms</p>
+      <p><strong>Fingerprint:</strong> <code>${t.fingerprint}</code> | <strong>Timestamp:</strong> ${t.timestamp}</p>
+      <h3>Span Tree</h3>
+    `;
+
+    t.spans.forEach(s => {
+      const div = document.createElement("div");
+      div.style.cssText = "border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa;";
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;font-weight:700;">
+          <span>├─ ${s.name}</span>
+          <span>${s.duration_ms} ms</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">
+          ${s.attributes ? Object.entries(s.attributes).map(([k,v]) => `<strong>${k}</strong>: ${JSON.stringify(v)}`).join(" · ") : ""}
+        </div>
+      `;
+      b.appendChild(div);
+    });
+
+    document.getElementById("traceModal").style.display = "flex";
+  } catch (e) {
+    alert("Failed to load trace: " + e.message);
+  }
+}
+
+function closeTrace() {
+  document.getElementById("traceModal").style.display = "none";
+}
+
+loadMetrics();
+</script>
+</body>
+</html>

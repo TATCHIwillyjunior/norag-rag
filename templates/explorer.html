@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept Map Explorer - RAG V4</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='studio.css') }}">
+<style>
+:root {
+  --ink: #17243b;
+  --muted: #6b7c96;
+  --line: #e2e8f0;
+  --canvas: #f8fafc;
+  --teal-dark: #07626d;
+  --blue: #3b82f6;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font: 14px/1.55 "Segoe UI", Inter, system-ui, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+a { color: inherit; text-decoration: none; }
+.topbar {
+  flex: 0 0 64px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, .95);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+.topbar-inner {
+  width: min(1300px, calc(100% - 40px));
+  height: 100%;
+  margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, #087f8c, #3b82f6);
+  color: white; font-weight: 800; font-size: 18px;
+  display: grid; place-items: center;
+}
+.brand-name { font-weight: 750; font-size: 15px; }
+.brand-name small { display: block; font-size: 10px; color: var(--muted); letter-spacing: .08em; }
+.nav { display: flex; gap: 6px; }
+.nav a {
+  padding: 8px 12px; border-radius: 8px; font-weight: 600; color: var(--muted);
+  transition: all .15s ease;
+}
+.nav a:hover, .nav a[aria-current="page"] { background: #edf7f8; color: var(--teal-dark); }
+
+.explorer-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 380px;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.sidebar {
+  background: white;
+  border-right: 1px solid var(--line);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar h2 { font-size: 16px; margin: 0 0 12px; }
+.search-input {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 8px; font-size: 13px; margin-bottom: 16px;
+}
+.type-filter-list { display: flex; flex-direction: column; gap: 8px; }
+.type-badge {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line);
+  font-size: 12px; cursor: pointer; transition: all .15s ease;
+}
+.type-badge:hover, .type-badge.active { background: #f1f5f9; font-weight: 700; }
+.color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+
+.canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 24px 24px;
+  cursor: grab;
+  overflow: hidden;
+}
+.canvas-container:active { cursor: grabbing; }
+canvas { display: block; width: 100%; height: 100%; }
+
+.controls-overlay {
+  position: absolute; bottom: 20px; left: 20px;
+  display: flex; gap: 8px;
+}
+.ctrl-btn {
+  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line);
+  background: white; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.08);
+}
+.ctrl-btn:hover { background: #f8fafc; }
+
+.inspector {
+  background: white;
+  border-left: 1px solid var(--line);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.inspector h2 { margin: 0 0 4px; font-size: 20px; word-break: break-word; }
+.inspector-type {
+  display: inline-block; padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px;
+}
+.ask-concept-btn {
+  width: 100%; padding: 10px 14px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg, #087f8c, #3b82f6);
+  color: white; font-weight: 700; font-size: 13px; cursor: pointer;
+  margin-bottom: 20px; box-shadow: 0 4px 12px rgba(8, 127, 140, .25);
+}
+.ask-concept-btn:hover { opacity: .95; }
+
+.rel-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.rel-item {
+  padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: #f8fafc; font-size: 12px;
+}
+.rel-item strong { color: var(--teal-dark); }
+
+.chunk-card {
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: #fafafa; font-size: 12px; margin-bottom: 10px;
+}
+.chunk-card code { font-weight: 700; color: #475569; }
+.chunk-text { color: #334155; margin-top: 6px; font-style: italic; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">
+      <div class="brand-mark">R</div>
+      <div class="brand-name">RAG Studio<small>V4 FINAL OBSERVABLE RELEASE</small></div>
+    </a>
+    <nav class="nav">
+      <a href="/">Ask & Chat</a>
+      <a href="/explorer" aria-current="page">Concept Explorer</a>
+      <a href="/metrics">Metrics</a>
+      <a href="/quarantine">Quarantine</a>
+      <a href="/eval">Evaluation</a>
+      <a href="/words">Words</a>
+    </nav>
+  </div>
+</header>
+
+<div class="explorer-layout">
+  <!-- Left Sidebar: Filters & Search -->
+  <aside class="sidebar">
+    <h2>Concepts Search</h2>
+    <input type="text" id="searchInput" class="search-input" placeholder="Search node name..." oninput="filterNodes()">
+    <h2>Entity Types</h2>
+    <div class="type-filter-list" id="typeFilterList"></div>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)">
+      Graph: <span id="statNodes">0</span> nodes · <span id="statEdges">0</span> relations
+    </div>
+  </aside>
+
+  <!-- Center Canvas: Force Simulation -->
+  <div class="canvas-container" id="canvasContainer">
+    <canvas id="graphCanvas"></canvas>
+    <div class="controls-overlay">
+      <button class="ctrl-btn" onclick="zoom(1.2)">+ Zoom In</button>
+      <button class="ctrl-btn" onclick="zoom(0.8)">- Zoom Out</button>
+      <button class="ctrl-btn" onclick="resetView()">⟲ Center</button>
+    </div>
+  </div>
+
+  <!-- Right Inspector: Selected Node -->
+  <aside class="inspector" id="inspector">
+    <div id="inspectorContent">
+      <p style="color:var(--muted);text-align:center;margin-top:40px;">Click any concept node in the graph to inspect its neighbors, relations, and source chunks.</p>
+    </div>
+  </aside>
+</div>
+
+<script>
+let graphData = { nodes: [], edges: [], types: {}, type_colors: {} };
+let filteredNodes = [];
+let selectedNode = null;
+let activeType = null;
+
+const canvas = document.getElementById("graphCanvas");
+const ctx = canvas.getContext("2d");
+let width = 0, height = 0;
+let scale = 1.0;
+let panX = 0, panY = 0;
+let isDragging = false, dragStartX = 0, dragStartY = 0;
+let draggedNode = null;
+
+function resizeCanvas() {
+  const container = document.getElementById("canvasContainer");
+  width = container.clientWidth;
+  height = container.clientHeight;
+  canvas.width = width * window.devicePixelRatio;
+  canvas.height = height * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  draw();
+}
+window.addEventListener("resize", resizeCanvas);
+
+// Initialize node positions
+function initSimulation() {
+  const n = graphData.nodes.length;
+  graphData.nodes.forEach((node, i) => {
+    const angle = (i / n) * 2 * Math.PI;
+    const r = 200 + Math.random() * 150;
+    node.x = width / 2 + r * Math.cos(angle);
+    node.y = height / 2 + r * Math.sin(angle);
+    node.vx = 0;
+    node.vy = 0;
+    node.radius = Math.max(14, Math.min(28, 12 + (node.degree || 1) * 3));
+  });
+
+  // Run initial simple force relaxation
+  for (let step = 0; step < 80; step++) {
+    tickForces();
+  }
+}
+
+function tickForces() {
+  const nodes = graphData.nodes;
+  const edges = graphData.edges;
+
+  // Repulsion between nodes
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const a = nodes[i], b = nodes[j];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      if (dist < 320) {
+        const force = (320 - dist) / dist * 0.15;
+        a.x -= dx * force;
+        a.y -= dy * force;
+        b.x += dx * force;
+        b.y += dy * force;
+      }
+    }
+  }
+
+  // Edge springs
+  edges.forEach(e => {
+    const source = nodes.find(n => n.id === e.source);
+    const target = nodes.find(n => n.id === e.target);
+    if (source && target) {
+      const dx = target.x - source.x;
+      const dy = target.y - source.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const desired = 140;
+      const force = (dist - desired) * 0.03;
+      source.x += (dx / dist) * force;
+      source.y += (dy / dist) * force;
+      target.x -= (dx / dist) * force;
+      target.y -= (dy / dist) * force;
+    }
+  });
+
+  // Gravity towards center
+  nodes.forEach(n => {
+    if (n !== draggedNode) {
+      n.x += (width / 2 - n.x) * 0.01;
+      n.y += (height / 2 - n.y) * 0.01;
+    }
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, width, height);
+  ctx.save();
+  ctx.translate(panX, panY);
+  ctx.scale(scale, scale);
+
+  const nodeMap = new Map(graphData.nodes.map(n => [n.id, n]));
+
+  // Draw Edges
+  graphData.edges.forEach(e => {
+    const s = nodeMap.get(e.source);
+    const t = nodeMap.get(e.target);
+    if (s && t) {
+      const isHighlighted = selectedNode && (selectedNode.id === s.id || selectedNode.id === t.id);
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y);
+      ctx.lineTo(t.x, t.y);
+      ctx.strokeStyle = isHighlighted ? "#087f8c" : "rgba(180, 195, 215, 0.45)";
+      ctx.lineWidth = isHighlighted ? 2.5 : 1.2;
+      ctx.stroke();
+
+      // Draw relation label if highlighted or zoomed in
+      if (isHighlighted || scale > 1.2) {
+        const mx = (s.x + t.x) / 2;
+        const my = (s.y + t.y) / 2;
+        ctx.fillStyle = isHighlighted ? "#07626d" : "#718096";
+        ctx.font = "10px sans-serif";
+        ctx.fillText(e.relation, mx, my);
+      }
+    }
+  });
+
+  // Draw Nodes
+  graphData.nodes.forEach(n => {
+    const isSelected = selectedNode && selectedNode.id === n.id;
+    const isVisible = (!activeType || n.type === activeType) &&
+      (!document.getElementById("searchInput").value || n.label.toLowerCase().includes(document.getElementById("searchInput").value.toLowerCase()));
+
+    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.radius, 0, 2 * Math.PI);
+    ctx.fillStyle = graphData.type_colors[n.type] || "#4263eb";
+    ctx.fill();
+
+    if (isSelected) {
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#17243b";
+      ctx.stroke();
+    } else {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#ffffff";
+      ctx.stroke();
+    }
+
+    // Node label
+    ctx.fillStyle = "#1e293b";
+    ctx.font = isSelected ? "bold 13px sans-serif" : "11px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(n.label, n.x, n.y + n.radius + 14);
+    ctx.globalAlpha = 1.0;
+  });
+
+  ctx.restore();
+}
+
+// Canvas interactions
+canvas.addEventListener("mousedown", e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left - panX) / scale;
+  const my = (e.clientY - rect.top - panY) / scale;
+
+  // Check if clicked node
+  const clicked = graphData.nodes.find(n => {
+    const dx = n.x - mx, dy = n.y - my;
+    return Math.sqrt(dx * dx + dy * dy) <= n.radius + 4;
+  });
+
+  if (clicked) {
+    draggedNode = clicked;
+    selectNode(clicked.id);
+  } else {
+    isDragging = true;
+    dragStartX = e.clientX - panX;
+    dragStartY = e.clientY - panY;
+  }
+});
+
+window.addEventListener("mousemove", e => {
+  if (draggedNode) {
+    const rect = canvas.getBoundingClientRect();
+    draggedNode.x = (e.clientX - rect.left - panX) / scale;
+    draggedNode.y = (e.clientY - rect.top - panY) / scale;
+    draw();
+  } else if (isDragging) {
+    panX = e.clientX - dragStartX;
+    panY = e.clientY - dragStartY;
+    draw();
+  }
+});
+
+window.addEventListener("mouseup", () => {
+  draggedNode = null;
+  isDragging = false;
+});
+
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  zoom(factor);
+});
+
+function zoom(factor) {
+  scale *= factor;
+  scale = Math.max(0.3, Math.min(3.5, scale));
+  draw();
+}
+
+function resetView() {
+  scale = 1.0;
+  panX = 0;
+  panY = 0;
+  draw();
+}
+
+async function selectNode(nodeId) {
+  selectedNode = graphData.nodes.find(n => n.id === nodeId);
+  draw();
+
+  const insp = document.getElementById("inspectorContent");
+  insp.innerHTML = "<p>Loading node details...</p>";
+
+  try {
+    const res = await fetch("/api/graph/node?id=" + encodeURIComponent(nodeId));
+    const data = await res.json();
+    if (data.error) {
+      insp.innerHTML = `<p class="err">${data.error}</p>`;
+      return;
+    }
+
+    const color = graphData.type_colors[data.type] || "#4263eb";
+    insp.innerHTML = `
+      <span class="inspector-type" style="background:${color}20;color:${color}">${data.type}</span>
+      <h2>${data.name}</h2>
+      <p style="color:var(--muted);font-size:12px;margin:4px 0 16px;">Referenced in ${data.chunks_count} corpus passage(s)</p>
+
+      <button class="ask-concept-btn" onclick="askAbout('${data.suggested_query.replace(/'/g, "\\'")}')">
+        💬 Ask: "${data.suggested_query}"
+      </button>
+
+      <h3 style="font-size:14px;margin:16px 0 8px;">Connected Relations (${data.connections.length})</h3>
+      <div class="rel-list">
+        ${data.connections.length ? data.connections.map(c => `
+          <div class="rel-item">
+            ${c.direction === "outgoing" ? `--<strong>${c.relation}</strong>-->` : `<--<strong>${c.relation}</strong>--`}
+            <a href="javascript:void(0)" onclick="selectNode('${c.target_id}')" style="font-weight:700;margin-left:4px;">${c.target_name}</a>
+            <span style="color:var(--muted);font-size:11px;">(${c.target_type})</span>
+          </div>
+        `).join("") : '<p style="color:var(--muted);font-size:12px;">No connected relations.</p>'}
+      </div>
+
+      <h3 style="font-size:14px;margin:16px 0 8px;">Source Chunks Provenance</h3>
+      <div>
+        ${data.chunks.map(ch => `
+          <div class="chunk-card">
+            <code>${ch.id} (${ch.doc})</code>
+            <div class="chunk-text">${ch.text}</div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  } catch (e) {
+    insp.innerHTML = `<p class="err">${e.message}</p>`;
+  }
+}
+
+function askAbout(query) {
+  window.location.href = "/?q=" + encodeURIComponent(query);
+}
+
+function filterNodes() {
+  draw();
+}
+
+async function loadGraph() {
+  try {
+    const res = await fetch("/api/graph/explorer");
+    graphData = await res.json();
+    document.getElementById("statNodes").textContent = graphData.stats.node_count;
+    document.getElementById("statEdges").textContent = graphData.stats.edge_count;
+
+    // Render Type Filter List
+    const typeList = document.getElementById("typeFilterList");
+    typeList.innerHTML = `<div class="type-badge active" onclick="setTypeFilter(null)">All Entity Types (${graphData.stats.node_count})</div>`;
+    for (const [t, count] of Object.entries(graphData.type_counts)) {
+      const color = graphData.type_colors[t] || "#4263eb";
+      typeList.innerHTML += `
+        <div class="type-badge" onclick="setTypeFilter('${t}')" id="filter-${t}">
+          <span><span class="color-dot" style="background:${color}"></span>${t}</span>
+          <strong>${count}</strong>
+        </div>
+      `;
+    }
+
+    resizeCanvas();
+    initSimulation();
+    draw();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function setTypeFilter(t) {
+  activeType = t;
+  document.querySelectorAll(".type-badge").forEach(b => b.classList.remove("active"));
+  if (t) {
+    document.getElementById("filter-" + t).classList.add("active");
+  } else {
+    document.querySelector(".type-badge").classList.add("active");
+  }
+  draw();
+}
+
+loadGraph();
+</script>
+</body>
+</html>

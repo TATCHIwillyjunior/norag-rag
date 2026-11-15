@@ -1,18 +1,29 @@
-# norag-rag
+# norag-rag (RAG V4 - Final Release)
 
-This repository contains a local RAG application and small standalone demos
-for comparing retrieval strategies with Google Gemini. The primary application
-is V3: dense retrieval, BM25, concept-graph retrieval, and reciprocal-rank
-fusion (RRF).
+This repository contains a local-first, observable, and responsible RAG application
+built with dense retrieval, BM25, concept-graph retrieval, reciprocal-rank fusion (RRF),
+multi-turn conversation, and Google Gemini.
 
-## V3 application
+## V4 Application Features
 
-The Flask app serves the Ask, Evaluation, and Words pages. On the Ask and
-Evaluation pages, select the `dense`, `bm25`, and (for Kestrel) `graph`
-retrievers. RRF combines only the retrievers selected for a request. The graph
-is built for Kestrel only.
+- **Part A — Observability & Tracing:** Full OpenTelemetry-aligned span hierarchy for every request (`guardrail.pii`, `conversation.rewrite`, `retrieve.dense`, `retrieve.bm25`, `retrieve.graph`, `fuse.rrf`, `generate`, `conversation.suggest`). Open any answer's trace with the **"🔍 Trace Details"** button in the UI, and inspect latency percentiles ($p_{50}$, $p_{95}$), token counts, and costs on the **`/metrics`** dashboard.
+- **Part B — Concept Map Explorer (`/explorer`):** Interactive force-directed network visualization of the Kestrel knowledge graph with entity-type filtering, concept search, neighbor traversal, source chunk provenance, and 1-click grounded queries.
+- **Part B — Conversation Mode:** Multi-turn conversational memory with LLM query rewriting for follow-up questions (e.g. *"and for the Business plan?"*) and automatic suggestions for the next 2–3 questions.
+- **Part C — Responsible AI Guardrails:**
+  - **Prompt Injection & Poisoning Scanner (`/quarantine`):** Ingestion guardrail detecting instruction overrides, jailbreaks, hidden HTML instructions, and markdown image exfiltration. Suspicious files are placed into quarantine and isolated from indexing.
+  - **PII Redaction Guardrail:** Automatically masks emails, phone numbers, credit cards, and sensitive identifiers before data leaves your machine.
 
-### Setup
+## Web Application Routes
+
+- `/`: Unified Ask & Conversation workspace with Trace Details and follow-up suggestions.
+- `/explorer`: Interactive Concept Map Explorer.
+- `/metrics`: Live pipeline observability, $p_{50}/p_{95}$ latency breakdown, and cost control.
+- `/quarantine`: Responsible AI Quarantine Manager.
+- `/eval`: Benchmark evaluation runner across question categories.
+- `/words`: Lexical vocabulary inspection.
+- `/bm25`: Standalone BM25 challenge page.
+
+## Setup
 
 Requires Python 3.10 or later.
 

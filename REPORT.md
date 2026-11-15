@@ -204,3 +204,22 @@ separately above.
   could not be assessed from this build.
 - The initial graph build hit an API 503, but the cached build resumed and
   completed with no failed chunks.
+
+## 6. RAG V4 Final Release: Observability, Features, and Responsible AI
+
+The V4 release expands V3 into a production-grade observable and responsible system:
+
+### 6.1 Observability & Tracing (Part A)
+- **Hierarchical Spans:** Every query generates a trace with discrete spans (`guardrail.pii`, `conversation.rewrite`, `retrieve.dense`, `retrieve.bm25`, `retrieve.graph`, `fuse.rrf`, `generate`, `conversation.suggest`).
+- **UI Trace Viewer:** Every answer includes a "🔍 Trace Details" drawer showing the execution breakdown, latency, tokens, cost, and retrieved chunk IDs.
+- **Metrics Dashboard (`/metrics`):** Displays real-time request counts, outcome distribution (answered, abstained, error), $p_{50}$ and $p_{95}$ latencies overall and by span, and token/cost aggregates.
+
+### 6.2 New Features (Part B)
+- **Concept Map Explorer (`/explorer`):** Interactive force-directed network view of the 47 nodes and 38 edges in the Kestrel concept graph. Features entity type filtering, concept search, neighbor traversal, source chunk provenance, and 1-click query launching.
+- **Conversation Mode (`/`):** Multi-turn conversational memory with LLM query rewriting for follow-up questions and automatic generation of 2–3 suggested next questions.
+
+### 6.3 Responsible AI Guardrails (Part C)
+- **Injection Scanner & Quarantine (`/quarantine`):** Ingestion guardrail detecting direct instruction overrides, jailbreaks, hidden HTML instructions, and markdown image exfiltration. Flags place documents into an isolated quarantine folder (`corpus/quarantine/`).
+- **PII Redaction Guardrail:** Automatically masks emails, phone numbers, credit cards, and sensitive identifiers before data leaves the local environment.
+
+Detailed architecture rationales and guardrail confusion matrices are documented in [DECISION_LOG.md](./DECISION_LOG.md).
