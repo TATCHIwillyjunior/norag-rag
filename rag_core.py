@@ -76,7 +76,10 @@ def save_settings(settings: Settings) -> None:
 def get_collection():
     global _client, _embedding_function
     if _embedding_function is None:
-        _embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
+        try:
+            _embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
+        except Exception:
+            _embedding_function = embedding_functions.DefaultEmbeddingFunction()
     if _client is None:
         _client = chromadb.PersistentClient(path=str(CHROMA_DIR))
     return _client.get_or_create_collection(name=COLLECTION_NAME, embedding_function=_embedding_function)

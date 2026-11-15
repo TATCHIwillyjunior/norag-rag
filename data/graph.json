@@ -1,0 +1,1070 @@
+{
+ "schema_version": "kestrel-schema-1",
+ "model": "gemini-3.5-flash-lite",
+ "docs": [
+  "billing-policy-2025.md",
+  "billing-policy-2026.md",
+  "product-guide.md",
+  "service-catalog.md",
+  "support-runbook-errors.md"
+ ],
+ "chunk_size": 800,
+ "overlap_percent": 10,
+ "chunk_hashes": {
+  "billing-policy-2025.md#0": "ff2bc46243c3",
+  "billing-policy-2025.md#1": "705177846f63",
+  "billing-policy-2025.md#2": "60f5e82225f9",
+  "billing-policy-2025.md#3": "47436757e369",
+  "billing-policy-2025.md#4": "7b4a4bfdf088",
+  "billing-policy-2025.md#5": "da098fd5271f",
+  "billing-policy-2026.md#0": "354a24f95bb1",
+  "billing-policy-2026.md#1": "0c6dc9308031",
+  "billing-policy-2026.md#2": "bc71f8006f89",
+  "billing-policy-2026.md#3": "c2db2cb9ed81",
+  "billing-policy-2026.md#4": "9e2dab6f853f",
+  "billing-policy-2026.md#5": "14631233ebd8",
+  "billing-policy-2026.md#6": "566707c2d6ab",
+  "billing-policy-2026.md#7": "8490cc9c826a",
+  "product-guide.md#0": "107eb55c7e56",
+  "product-guide.md#1": "0f81bb826fb3",
+  "product-guide.md#2": "f8421d580ca8",
+  "product-guide.md#3": "312315739e6d",
+  "product-guide.md#4": "6884e08e1b7c",
+  "product-guide.md#5": "bb26671d8768",
+  "product-guide.md#6": "7b99de78f4f5",
+  "product-guide.md#7": "a74e88e5bf42",
+  "product-guide.md#8": "3b00f7bac154",
+  "product-guide.md#9": "1afd0c4e5562",
+  "product-guide.md#10": "1a98147b35df",
+  "product-guide.md#11": "da865d49812d",
+  "service-catalog.md#0": "75929ec5ade7",
+  "service-catalog.md#1": "11326179b194",
+  "service-catalog.md#2": "c75570e86c64",
+  "service-catalog.md#3": "40b4239f6281",
+  "service-catalog.md#4": "2c9d0bb421c2",
+  "service-catalog.md#5": "e57d121a8241",
+  "support-runbook-errors.md#0": "7ccee9369587",
+  "support-runbook-errors.md#1": "5c27ca44c8da",
+  "support-runbook-errors.md#2": "d5f55570c01c",
+  "support-runbook-errors.md#3": "1808518f6d84",
+  "support-runbook-errors.md#4": "792faa848448",
+  "support-runbook-errors.md#5": "621bb23064de",
+  "support-runbook-errors.md#6": "d01501febf7f",
+  "support-runbook-errors.md#7": "c74424f9a89f",
+  "support-runbook-errors.md#8": "dd1daef1b3bb",
+  "support-runbook-errors.md#9": "87cfafbaea30",
+  "support-runbook-errors.md#10": "7544db4ffc47"
+ },
+ "nodes": {
+  "billing and refund policy": {
+   "name": "Billing and Refund Policy",
+   "type": "policy",
+   "type_votes": {
+    "policy": 9
+   },
+   "forms": {
+    "Billing and Refund Policy": 9
+   },
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0"
+   ]
+  },
+  "starter": {
+   "name": "Starter",
+   "type": "plan",
+   "type_votes": {
+    "plan": 2
+   },
+   "forms": {
+    "Starter": 2
+   },
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0"
+   ]
+  },
+  "team": {
+   "name": "Team",
+   "type": "plan",
+   "type_votes": {
+    "plan": 2
+   },
+   "forms": {
+    "Team": 2
+   },
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0"
+   ]
+  },
+  "business": {
+   "name": "Business",
+   "type": "plan",
+   "type_votes": {
+    "plan": 4
+   },
+   "forms": {
+    "Business": 4
+   },
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0",
+    "product-guide.md#1",
+    "product-guide.md#5"
+   ]
+  },
+  "enterprise": {
+   "name": "Enterprise",
+   "type": "plan",
+   "type_votes": {
+    "plan": 5
+   },
+   "forms": {
+    "Enterprise": 5
+   },
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0",
+    "product-guide.md#1",
+    "product-guide.md#5"
+   ]
+  },
+  "payment method": {
+   "name": "Payment method",
+   "type": "setting",
+   "type_votes": {
+    "setting": 1
+   },
+   "forms": {
+    "Payment method": 1
+   },
+   "chunks": [
+    "billing-policy-2025.md#1"
+   ]
+  },
+  "owner": {
+   "name": "Owner",
+   "type": "role",
+   "type_votes": {
+    "role": 4
+   },
+   "forms": {
+    "Owner": 4
+   },
+   "chunks": [
+    "billing-policy-2025.md#1",
+    "billing-policy-2025.md#2",
+    "billing-policy-2025.md#4",
+    "billing-policy-2026.md#2"
+   ]
+  },
+  "settings plan invoice": {
+   "name": "Settings → Plan → Invoices",
+   "type": "setting",
+   "type_votes": {
+    "setting": 1
+   },
+   "forms": {
+    "Settings → Plan → Invoices": 1
+   },
+   "chunks": [
+    "billing-policy-2025.md#2"
+   ]
+  },
+  "settings plan cancel plan": {
+   "name": "Settings → Plan → Cancel plan",
+   "type": "setting",
+   "type_votes": {
+    "setting": 1
+   },
+   "forms": {
+    "Settings → Plan → Cancel plan": 1
+   },
+   "chunks": [
+    "billing-policy-2025.md#4"
+   ]
+  },
+  "billing and refund policy effective 1 january 2025": {
+   "name": "Billing and Refund Policy effective 1 January 2025",
+   "type": "policy",
+   "type_votes": {
+    "policy": 1
+   },
+   "forms": {
+    "Billing and Refund Policy effective 1 January 2025": 1
+   },
+   "chunks": [
+    "billing-policy-2026.md#0"
+   ]
+  },
+  "settings plan payment method": {
+   "name": "Settings → Plan → Payment method",
+   "type": "setting",
+   "type_votes": {
+    "setting": 1
+   },
+   "forms": {
+    "Settings → Plan → Payment method": 1
+   },
+   "chunks": [
+    "billing-policy-2026.md#2"
+   ]
+  },
+  "single sign-on saml": {
+   "name": "Single sign-on (SAML)",
+   "type": "feature",
+   "type_votes": {
+    "feature": 2
+   },
+   "forms": {
+    "Single sign-on (SAML)": 2
+   },
+   "chunks": [
+    "product-guide.md#1"
+   ]
+  },
+  "scim user provisioning": {
+   "name": "SCIM user provisioning",
+   "type": "feature",
+   "type_votes": {
+    "feature": 1
+   },
+   "forms": {
+    "SCIM user provisioning": 1
+   },
+   "chunks": [
+    "product-guide.md#1"
+   ]
+  },
+  "single sign-on": {
+   "name": "single sign-on",
+   "type": "feature",
+   "type_votes": {
+    "feature": 2
+   },
+   "forms": {
+    "single sign-on": 2
+   },
+   "chunks": [
+    "product-guide.md#5"
+   ]
+  },
+  "admin": {
+   "name": "Admin",
+   "type": "role",
+   "type_votes": {
+    "role": 1
+   },
+   "forms": {
+    "Admin": 1
+   },
+   "chunks": [
+    "product-guide.md#9"
+   ]
+  },
+  "public link": {
+   "name": "Public links",
+   "type": "feature",
+   "type_votes": {
+    "feature": 2
+   },
+   "forms": {
+    "Public links": 2
+   },
+   "chunks": [
+    "product-guide.md#9"
+   ]
+  },
+  "free": {
+   "name": "Free",
+   "type": "plan",
+   "type_votes": {
+    "plan": 1
+   },
+   "forms": {
+    "Free": 1
+   },
+   "chunks": [
+    "product-guide.md#9"
+   ]
+  },
+  "gateway": {
+   "name": "gateway",
+   "type": "service",
+   "type_votes": {
+    "service": 1
+   },
+   "forms": {
+    "gateway": 1
+   },
+   "chunks": [
+    "service-catalog.md#0"
+   ]
+  },
+  "platform": {
+   "name": "Platform",
+   "type": "team",
+   "type_votes": {
+    "team": 4
+   },
+   "forms": {
+    "Platform": 4
+   },
+   "chunks": [
+    "service-catalog.md#0",
+    "service-catalog.md#2",
+    "service-catalog.md#3"
+   ]
+  },
+  "#platform-help": {
+   "name": "#platform-help",
+   "type": "channel",
+   "type_votes": {
+    "channel": 1
+   },
+   "forms": {
+    "#platform-help": 1
+   },
+   "chunks": [
+    "service-catalog.md#0"
+   ]
+  },
+  "connector-hub": {
+   "name": "connector-hub",
+   "type": "service",
+   "type_votes": {
+    "service": 1
+   },
+   "forms": {
+    "connector-hub": 1
+   },
+   "chunks": [
+    "service-catalog.md#1"
+   ]
+  },
+  "data integration": {
+   "name": "Data Integrations",
+   "type": "team",
+   "type_votes": {
+    "team": 3
+   },
+   "forms": {
+    "Data Integrations": 3
+   },
+   "chunks": [
+    "service-catalog.md#1",
+    "service-catalog.md#3",
+    "support-runbook-errors.md#4"
+   ]
+  },
+  "query-engine": {
+   "name": "query-engine",
+   "type": "service",
+   "type_votes": {
+    "service": 1
+   },
+   "forms": {
+    "query-engine": 1
+   },
+   "chunks": [
+    "service-catalog.md#1"
+   ]
+  },
+  "analytics engine": {
+   "name": "Analytics Engine",
+   "type": "team",
+   "type_votes": {
+    "team": 3
+   },
+   "forms": {
+    "Analytics Engine": 3
+   },
+   "chunks": [
+    "service-catalog.md#1",
+    "service-catalog.md#3"
+   ]
+  },
+  "scheduler": {
+   "name": "scheduler",
+   "type": "service",
+   "type_votes": {
+    "service": 1
+   },
+   "forms": {
+    "scheduler": 1
+   },
+   "chunks": [
+    "service-catalog.md#1"
+   ]
+  },
+  "postroom": {
+   "name": "postroom",
+   "type": "service",
+   "type_votes": {
+    "service": 3
+   },
+   "forms": {
+    "postroom": 3
+   },
+   "chunks": [
+    "service-catalog.md#2",
+    "support-runbook-errors.md#8"
+   ]
+  },
+  "messaging": {
+   "name": "Messaging",
+   "type": "team",
+   "type_votes": {
+    "team": 2
+   },
+   "forms": {
+    "Messaging": 2
+   },
+   "chunks": [
+    "service-catalog.md#2",
+    "service-catalog.md#3"
+   ]
+  },
+  "mailman": {
+   "name": "mailman",
+   "type": "service",
+   "type_votes": {
+    "service": 1
+   },
+   "forms": {
+    "mailman": 1
+   },
+   "chunks": [
+    "service-catalog.md#2"
+   ]
+  },
+  "embed-svc": {
+   "name": "embed-svc",
+   "type": "service",
+   "type_votes": {
+    "service": 1
+   },
+   "forms": {
+    "embed-svc": 1
+   },
+   "chunks": [
+    "service-catalog.md#2"
+   ]
+  },
+  "payments core": {
+   "name": "Payments Core",
+   "type": "team",
+   "type_votes": {
+    "team": 3
+   },
+   "forms": {
+    "Payments Core": 3
+   },
+   "chunks": [
+    "service-catalog.md#3",
+    "service-catalog.md#4",
+    "support-runbook-errors.md#10"
+   ]
+  },
+  "#oncall-payment": {
+   "name": "#oncall-payments",
+   "type": "channel",
+   "type_votes": {
+    "channel": 2
+   },
+   "forms": {
+    "#oncall-payments": 2
+   },
+   "chunks": [
+    "service-catalog.md#3",
+    "service-catalog.md#4"
+   ]
+  },
+  "identity": {
+   "name": "Identity",
+   "type": "team",
+   "type_votes": {
+    "team": 3
+   },
+   "forms": {
+    "Identity": 3
+   },
+   "chunks": [
+    "service-catalog.md#3",
+    "support-runbook-errors.md#3"
+   ]
+  },
+  "#oncall-identity": {
+   "name": "#oncall-identity",
+   "type": "channel",
+   "type_votes": {
+    "channel": 1
+   },
+   "forms": {
+    "#oncall-identity": 1
+   },
+   "chunks": [
+    "service-catalog.md#3"
+   ]
+  },
+  "#oncall-platform": {
+   "name": "#oncall-platform",
+   "type": "channel",
+   "type_votes": {
+    "channel": 1
+   },
+   "forms": {
+    "#oncall-platform": 1
+   },
+   "chunks": [
+    "service-catalog.md#3"
+   ]
+  },
+  "#oncall-data-integration": {
+   "name": "#oncall-data-integrations",
+   "type": "channel",
+   "type_votes": {
+    "channel": 1
+   },
+   "forms": {
+    "#oncall-data-integrations": 1
+   },
+   "chunks": [
+    "service-catalog.md#3"
+   ]
+  },
+  "#oncall-analytic": {
+   "name": "#oncall-analytics",
+   "type": "channel",
+   "type_votes": {
+    "channel": 1
+   },
+   "forms": {
+    "#oncall-analytics": 1
+   },
+   "chunks": [
+    "service-catalog.md#3"
+   ]
+  },
+  "#oncall-messaging": {
+   "name": "#oncall-messaging",
+   "type": "channel",
+   "type_votes": {
+    "channel": 1
+   },
+   "forms": {
+    "#oncall-messaging": 1
+   },
+   "chunks": [
+    "service-catalog.md#3"
+   ]
+  },
+  "audit-log": {
+   "name": "audit-log",
+   "type": "service",
+   "type_votes": {
+    "service": 1
+   },
+   "forms": {
+    "audit-log": 1
+   },
+   "chunks": [
+    "service-catalog.md#3"
+   ]
+  },
+  "kst-1001": {
+   "name": "KST-1001",
+   "type": "error_code",
+   "type_votes": {
+    "error_code": 1
+   },
+   "forms": {
+    "KST-1001": 1
+   },
+   "chunks": [
+    "support-runbook-errors.md#1"
+   ]
+  },
+  "kst-1xxx": {
+   "name": "KST-1xxx",
+   "type": "error_code",
+   "type_votes": {
+    "error_code": 1
+   },
+   "forms": {
+    "KST-1xxx": 1
+   },
+   "chunks": [
+    "support-runbook-errors.md#1"
+   ]
+  },
+  "kst-1012": {
+   "name": "KST-1012",
+   "type": "error_code",
+   "type_votes": {
+    "error_code": 1
+   },
+   "forms": {
+    "KST-1012": 1
+   },
+   "chunks": [
+    "support-runbook-errors.md#3"
+   ]
+  },
+  "kst-2044": {
+   "name": "KST-2044",
+   "type": "error_code",
+   "type_votes": {
+    "error_code": 1
+   },
+   "forms": {
+    "KST-2044": 1
+   },
+   "chunks": [
+    "support-runbook-errors.md#4"
+   ]
+  },
+  "kst-3012": {
+   "name": "KST-3012",
+   "type": "error_code",
+   "type_votes": {
+    "error_code": 1
+   },
+   "forms": {
+    "KST-3012": 1
+   },
+   "chunks": [
+    "support-runbook-errors.md#5"
+   ]
+  },
+  "analytics eng": {
+   "name": "Analytics Eng",
+   "type": "team",
+   "type_votes": {
+    "team": 1
+   },
+   "forms": {
+    "Analytics Eng": 1
+   },
+   "chunks": [
+    "support-runbook-errors.md#5"
+   ]
+  },
+  "kst-5031": {
+   "name": "KST-5031",
+   "type": "error_code",
+   "type_votes": {
+    "error_code": 2
+   },
+   "forms": {
+    "KST-5031": 2
+   },
+   "chunks": [
+    "support-runbook-errors.md#7",
+    "support-runbook-errors.md#8"
+   ]
+  },
+  "delivery and embedding": {
+   "name": "Delivery and embedding",
+   "type": "other",
+   "type_votes": {
+    "other": 1
+   },
+   "forms": {
+    "Delivery and embedding": 1
+   },
+   "chunks": [
+    "support-runbook-errors.md#7"
+   ]
+  },
+  "kst-6010": {
+   "name": "KST-6010",
+   "type": "error_code",
+   "type_votes": {
+    "error_code": 1
+   },
+   "forms": {
+    "KST-6010": 1
+   },
+   "chunks": [
+    "support-runbook-errors.md#10"
+   ]
+  }
+ },
+ "edges": [
+  {
+   "head": "admin",
+   "relation": "requires",
+   "tail": "public link",
+   "chunks": [
+    "product-guide.md#9"
+   ],
+   "count": 1
+  },
+  {
+   "head": "analytics engine",
+   "relation": "on_call_channel",
+   "tail": "#oncall-analytic",
+   "chunks": [
+    "service-catalog.md#3"
+   ],
+   "count": 1
+  },
+  {
+   "head": "audit-log",
+   "relation": "owned_by",
+   "tail": "identity",
+   "chunks": [
+    "service-catalog.md#3"
+   ],
+   "count": 1
+  },
+  {
+   "head": "billing and refund policy",
+   "relation": "applies_to",
+   "tail": "business",
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0"
+   ],
+   "count": 2
+  },
+  {
+   "head": "billing and refund policy",
+   "relation": "applies_to",
+   "tail": "enterprise",
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0"
+   ],
+   "count": 2
+  },
+  {
+   "head": "billing and refund policy",
+   "relation": "applies_to",
+   "tail": "starter",
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0"
+   ],
+   "count": 2
+  },
+  {
+   "head": "billing and refund policy",
+   "relation": "applies_to",
+   "tail": "team",
+   "chunks": [
+    "billing-policy-2025.md#0",
+    "billing-policy-2026.md#0"
+   ],
+   "count": 2
+  },
+  {
+   "head": "billing and refund policy",
+   "relation": "replaces",
+   "tail": "billing and refund policy effective 1 january 2025",
+   "chunks": [
+    "billing-policy-2026.md#0"
+   ],
+   "count": 1
+  },
+  {
+   "head": "connector-hub",
+   "relation": "owned_by",
+   "tail": "data integration",
+   "chunks": [
+    "service-catalog.md#1"
+   ],
+   "count": 1
+  },
+  {
+   "head": "data integration",
+   "relation": "on_call_channel",
+   "tail": "#oncall-data-integration",
+   "chunks": [
+    "service-catalog.md#3"
+   ],
+   "count": 1
+  },
+  {
+   "head": "embed-svc",
+   "relation": "owned_by",
+   "tail": "platform",
+   "chunks": [
+    "service-catalog.md#2"
+   ],
+   "count": 1
+  },
+  {
+   "head": "free",
+   "relation": "requires",
+   "tail": "public link",
+   "chunks": [
+    "product-guide.md#9"
+   ],
+   "count": 1
+  },
+  {
+   "head": "gateway",
+   "relation": "owned_by",
+   "tail": "platform",
+   "chunks": [
+    "service-catalog.md#0"
+   ],
+   "count": 1
+  },
+  {
+   "head": "identity",
+   "relation": "on_call_channel",
+   "tail": "#oncall-identity",
+   "chunks": [
+    "service-catalog.md#3"
+   ],
+   "count": 1
+  },
+  {
+   "head": "kst-1001",
+   "relation": "related_to",
+   "tail": "kst-1xxx",
+   "chunks": [
+    "support-runbook-errors.md#1"
+   ],
+   "count": 1
+  },
+  {
+   "head": "kst-1012",
+   "relation": "escalates_to",
+   "tail": "identity",
+   "chunks": [
+    "support-runbook-errors.md#3"
+   ],
+   "count": 1
+  },
+  {
+   "head": "kst-2044",
+   "relation": "related_to",
+   "tail": "data integration",
+   "chunks": [
+    "support-runbook-errors.md#4"
+   ],
+   "count": 1
+  },
+  {
+   "head": "kst-3012",
+   "relation": "escalates_to",
+   "tail": "analytics eng",
+   "chunks": [
+    "support-runbook-errors.md#5"
+   ],
+   "count": 1
+  },
+  {
+   "head": "kst-5031",
+   "relation": "raised_by",
+   "tail": "postroom",
+   "chunks": [
+    "support-runbook-errors.md#8"
+   ],
+   "count": 1
+  },
+  {
+   "head": "kst-5031",
+   "relation": "related_to",
+   "tail": "delivery and embedding",
+   "chunks": [
+    "support-runbook-errors.md#7"
+   ],
+   "count": 1
+  },
+  {
+   "head": "kst-6010",
+   "relation": "escalates_to",
+   "tail": "payments core",
+   "chunks": [
+    "support-runbook-errors.md#10"
+   ],
+   "count": 1
+  },
+  {
+   "head": "messaging",
+   "relation": "on_call_channel",
+   "tail": "#oncall-messaging",
+   "chunks": [
+    "service-catalog.md#3"
+   ],
+   "count": 1
+  },
+  {
+   "head": "owner",
+   "relation": "requires",
+   "tail": "settings plan cancel plan",
+   "chunks": [
+    "billing-policy-2025.md#4"
+   ],
+   "count": 1
+  },
+  {
+   "head": "owner",
+   "relation": "requires",
+   "tail": "settings plan invoice",
+   "chunks": [
+    "billing-policy-2025.md#2"
+   ],
+   "count": 1
+  },
+  {
+   "head": "owner",
+   "relation": "requires",
+   "tail": "settings plan payment method",
+   "chunks": [
+    "billing-policy-2026.md#2"
+   ],
+   "count": 1
+  },
+  {
+   "head": "payment method",
+   "relation": "requires",
+   "tail": "owner",
+   "chunks": [
+    "billing-policy-2025.md#1"
+   ],
+   "count": 1
+  },
+  {
+   "head": "payments core",
+   "relation": "on_call_channel",
+   "tail": "#oncall-payment",
+   "chunks": [
+    "service-catalog.md#3",
+    "service-catalog.md#4"
+   ],
+   "count": 2
+  },
+  {
+   "head": "platform",
+   "relation": "on_call_channel",
+   "tail": "#oncall-platform",
+   "chunks": [
+    "service-catalog.md#3"
+   ],
+   "count": 1
+  },
+  {
+   "head": "platform",
+   "relation": "related_to",
+   "tail": "#platform-help",
+   "chunks": [
+    "service-catalog.md#0"
+   ],
+   "count": 1
+  },
+  {
+   "head": "postroom",
+   "relation": "owned_by",
+   "tail": "messaging",
+   "chunks": [
+    "service-catalog.md#2"
+   ],
+   "count": 1
+  },
+  {
+   "head": "postroom",
+   "relation": "replaces",
+   "tail": "mailman",
+   "chunks": [
+    "service-catalog.md#2"
+   ],
+   "count": 1
+  },
+  {
+   "head": "query-engine",
+   "relation": "owned_by",
+   "tail": "analytics engine",
+   "chunks": [
+    "service-catalog.md#1"
+   ],
+   "count": 1
+  },
+  {
+   "head": "scheduler",
+   "relation": "owned_by",
+   "tail": "analytics engine",
+   "chunks": [
+    "service-catalog.md#1"
+   ],
+   "count": 1
+  },
+  {
+   "head": "scim user provisioning",
+   "relation": "available_on",
+   "tail": "enterprise",
+   "chunks": [
+    "product-guide.md#1"
+   ],
+   "count": 1
+  },
+  {
+   "head": "single sign-on",
+   "relation": "available_on",
+   "tail": "business",
+   "chunks": [
+    "product-guide.md#5"
+   ],
+   "count": 1
+  },
+  {
+   "head": "single sign-on",
+   "relation": "available_on",
+   "tail": "enterprise",
+   "chunks": [
+    "product-guide.md#5"
+   ],
+   "count": 1
+  },
+  {
+   "head": "single sign-on saml",
+   "relation": "available_on",
+   "tail": "business",
+   "chunks": [
+    "product-guide.md#1"
+   ],
+   "count": 1
+  },
+  {
+   "head": "single sign-on saml",
+   "relation": "available_on",
+   "tail": "enterprise",
+   "chunks": [
+    "product-guide.md#1"
+   ],
+   "count": 1
+  }
+ ],
+ "merges": [],
+ "stats": {
+  "chunks": 43,
+  "entities": 47,
+  "relations": 38,
+  "triples_extracted": 43,
+  "merged_entities": 0,
+  "invalid_triples": 0,
+  "failed_chunks": 0
+ },
+ "invalid_triples": [],
+ "failed_chunks": [],
+ "build_cost_total": {
+  "llm_calls": 43,
+  "input_tokens": 23003,
+  "output_tokens": 2009,
+  "seconds": 188.3,
+  "retries": 0
+ },
+ "last_run": {
+  "llm_calls": 16,
+  "cache_hits": 27,
+  "input_tokens": 8726,
+  "output_tokens": 970,
+  "seconds": 110.8
+ }
+}

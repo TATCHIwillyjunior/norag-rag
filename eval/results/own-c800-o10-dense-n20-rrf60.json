@@ -1,0 +1,1015 @@
+{
+  "corpus": "own",
+  "generated_at": "2026-11-15T09:35:03+00:00",
+  "retrievers": [
+    "dense"
+  ],
+  "candidates": 20,
+  "rrf_k": 60,
+  "chunk_size": 800,
+  "overlap_percent": 10,
+  "embedding_model": "all-MiniLM-L6-v2",
+  "llm_model": null,
+  "answer_top_k": null,
+  "evidence_problems": [],
+  "summary": {
+    "answerable_questions": 8,
+    "unanswerable_questions": 2,
+    "overall": {
+      "n": 8,
+      "hit@1": 0.125,
+      "hit@3": 0.375,
+      "hit@5": 0.375,
+      "hit@10": 0.375,
+      "recall@1": 0.125,
+      "recall@3": 0.3125,
+      "recall@5": 0.3125,
+      "recall@10": 0.3125,
+      "mrr": 0.25
+    },
+    "per_type": {
+      "exact_identifier": {
+        "n": 3,
+        "hit@1": 0.3333333333333333,
+        "hit@3": 0.3333333333333333,
+        "hit@5": 0.3333333333333333,
+        "hit@10": 0.3333333333333333,
+        "recall@1": 0.3333333333333333,
+        "recall@3": 0.3333333333333333,
+        "recall@5": 0.3333333333333333,
+        "recall@10": 0.3333333333333333,
+        "mrr": 0.3333333333333333
+      },
+      "other": {
+        "n": 2,
+        "hit@1": 0.0,
+        "hit@3": 0.5,
+        "hit@5": 0.5,
+        "hit@10": 0.5,
+        "recall@1": 0.0,
+        "recall@3": 0.5,
+        "recall@5": 0.5,
+        "recall@10": 0.5,
+        "mrr": 0.25
+      },
+      "split_answer": {
+        "n": 1,
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "hit@10": 1.0,
+        "recall@1": 0.0,
+        "recall@3": 0.5,
+        "recall@5": 0.5,
+        "recall@10": 0.5,
+        "mrr": 0.5
+      },
+      "vocabulary": {
+        "n": 2,
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "hit@10": 0.0,
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0,
+        "mrr": 0.0
+      }
+    }
+  },
+  "per_retriever_summary": {
+    "dense": {
+      "answerable_questions": 8,
+      "unanswerable_questions": 0,
+      "overall": {
+        "n": 8,
+        "hit@1": 0.125,
+        "hit@3": 0.375,
+        "hit@5": 0.375,
+        "hit@10": 0.375,
+        "recall@1": 0.125,
+        "recall@3": 0.3125,
+        "recall@5": 0.3125,
+        "recall@10": 0.3125,
+        "mrr": 0.25
+      },
+      "per_type": {
+        "exact_identifier": {
+          "n": 3,
+          "hit@1": 0.3333333333333333,
+          "hit@3": 0.3333333333333333,
+          "hit@5": 0.3333333333333333,
+          "hit@10": 0.3333333333333333,
+          "recall@1": 0.3333333333333333,
+          "recall@3": 0.3333333333333333,
+          "recall@5": 0.3333333333333333,
+          "recall@10": 0.3333333333333333,
+          "mrr": 0.3333333333333333
+        },
+        "other": {
+          "n": 2,
+          "hit@1": 0.0,
+          "hit@3": 0.5,
+          "hit@5": 0.5,
+          "hit@10": 0.5,
+          "recall@1": 0.0,
+          "recall@3": 0.5,
+          "recall@5": 0.5,
+          "recall@10": 0.5,
+          "mrr": 0.25
+        },
+        "split_answer": {
+          "n": 1,
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 0.0,
+          "recall@3": 0.5,
+          "recall@5": 0.5,
+          "recall@10": 0.5,
+          "mrr": 0.5
+        },
+        "vocabulary": {
+          "n": 2,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "hit@10": 0.0,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0
+        }
+      }
+    }
+  },
+  "cost": {
+    "avg_retrieval_ms": 678,
+    "retrieval_llm_calls_per_question": 0
+  },
+  "rows": [
+    {
+      "id": "o01",
+      "type": "exact_identifier",
+      "question": "What is the name of the old pawnbroker?",
+      "answerable": true,
+      "retrieved": [
+        "CrimeAndPunishment.txt#411",
+        "CrimeAndPunishment.txt#410",
+        "CrimeAndPunishment.txt#201",
+        "CrimeAndPunishment.txt#452",
+        "CrimeAndPunishment.txt#202",
+        "CrimeAndPunishment.txt#203",
+        "CrimeAndPunishment.txt#482",
+        "CrimeAndPunishment.txt#468",
+        "CrimeAndPunishment.txt#24",
+        "CrimeAndPunishment.txt#538"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#411": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#410": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#201": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#452": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#202": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#203": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#482": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#468": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#24": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#538": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#411",
+          "CrimeAndPunishment.txt#410",
+          "CrimeAndPunishment.txt#201",
+          "CrimeAndPunishment.txt#452",
+          "CrimeAndPunishment.txt#202",
+          "CrimeAndPunishment.txt#203",
+          "CrimeAndPunishment.txt#482",
+          "CrimeAndPunishment.txt#468",
+          "CrimeAndPunishment.txt#24",
+          "CrimeAndPunishment.txt#538"
+        ]
+      },
+      "retrieval_latency_ms": 610,
+      "retriever_timings_ms": {
+        "dense": 530
+      },
+      "notes": [],
+      "evidence_ranks": [
+        null
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 0,
+        "hit@5": 0,
+        "hit@10": 0
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0
+      },
+      "first_rank": null,
+      "retriever_ranks": {
+        "dense": [
+          null
+        ]
+      }
+    },
+    {
+      "id": "o02",
+      "type": "exact_identifier",
+      "question": "Who introduces himself as a titular counsellor in the tavern?",
+      "answerable": true,
+      "retrieved": [
+        "CrimeAndPunishment.txt#38",
+        "CrimeAndPunishment.txt#31",
+        "CrimeAndPunishment.txt#1274",
+        "CrimeAndPunishment.txt#37",
+        "CrimeAndPunishment.txt#162",
+        "CrimeAndPunishment.txt#1302",
+        "CrimeAndPunishment.txt#42",
+        "CrimeAndPunishment.txt#39",
+        "CrimeAndPunishment.txt#1263",
+        "CrimeAndPunishment.txt#988"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#38": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#31": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#1274": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#37": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#162": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#1302": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#42": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#39": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#1263": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#988": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#38",
+          "CrimeAndPunishment.txt#31",
+          "CrimeAndPunishment.txt#1274",
+          "CrimeAndPunishment.txt#37",
+          "CrimeAndPunishment.txt#162",
+          "CrimeAndPunishment.txt#1302",
+          "CrimeAndPunishment.txt#42",
+          "CrimeAndPunishment.txt#39",
+          "CrimeAndPunishment.txt#1263",
+          "CrimeAndPunishment.txt#988"
+        ]
+      },
+      "retrieval_latency_ms": 760,
+      "retriever_timings_ms": {
+        "dense": 714
+      },
+      "notes": [],
+      "evidence_ranks": [
+        1
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 1.0,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "o03",
+      "type": "vocabulary",
+      "question": "On which floor is Raskolnikov when porters moving furniture block his way?",
+      "answerable": true,
+      "retrieved": [
+        "CrimeAndPunishment.txt#791",
+        "CrimeAndPunishment.txt#811",
+        "CrimeAndPunishment.txt#516",
+        "CrimeAndPunishment.txt#468",
+        "CrimeAndPunishment.txt#89",
+        "CrimeAndPunishment.txt#511",
+        "CrimeAndPunishment.txt#776",
+        "CrimeAndPunishment.txt#518",
+        "CrimeAndPunishment.txt#794",
+        "CrimeAndPunishment.txt#1028"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#791": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#811": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#516": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#468": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#89": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#511": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#776": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#518": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#794": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#1028": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#791",
+          "CrimeAndPunishment.txt#811",
+          "CrimeAndPunishment.txt#516",
+          "CrimeAndPunishment.txt#468",
+          "CrimeAndPunishment.txt#89",
+          "CrimeAndPunishment.txt#511",
+          "CrimeAndPunishment.txt#776",
+          "CrimeAndPunishment.txt#518",
+          "CrimeAndPunishment.txt#794",
+          "CrimeAndPunishment.txt#1028"
+        ]
+      },
+      "retrieval_latency_ms": 735,
+      "retriever_timings_ms": {
+        "dense": 671
+      },
+      "notes": [],
+      "evidence_ranks": [
+        null
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 0,
+        "hit@5": 0,
+        "hit@10": 0
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0
+      },
+      "first_rank": null,
+      "retriever_ranks": {
+        "dense": [
+          null
+        ]
+      }
+    },
+    {
+      "id": "o04",
+      "type": "other",
+      "question": "Where does the author spend four years of penal servitude?",
+      "answerable": true,
+      "retrieved": [
+        "CrimeAndPunishment.txt#0",
+        "CrimeAndPunishment.txt#4",
+        "CrimeAndPunishment.txt#1558",
+        "CrimeAndPunishment.txt#1560",
+        "CrimeAndPunishment.txt#1536",
+        "CrimeAndPunishment.txt#1531",
+        "CrimeAndPunishment.txt#1556",
+        "CrimeAndPunishment.txt#751",
+        "CrimeAndPunishment.txt#452",
+        "CrimeAndPunishment.txt#1304"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#0": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#4": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#1558": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#1560": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#1536": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#1531": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#1556": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#751": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#452": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#1304": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#0",
+          "CrimeAndPunishment.txt#4",
+          "CrimeAndPunishment.txt#1558",
+          "CrimeAndPunishment.txt#1560",
+          "CrimeAndPunishment.txt#1536",
+          "CrimeAndPunishment.txt#1531",
+          "CrimeAndPunishment.txt#1556",
+          "CrimeAndPunishment.txt#751",
+          "CrimeAndPunishment.txt#452",
+          "CrimeAndPunishment.txt#1304"
+        ]
+      },
+      "retrieval_latency_ms": 738,
+      "retriever_timings_ms": {
+        "dense": 643
+      },
+      "notes": [],
+      "evidence_ranks": [
+        2
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 2,
+      "retriever_ranks": {
+        "dense": [
+          2
+        ]
+      }
+    },
+    {
+      "id": "o05",
+      "type": "other",
+      "question": "What does Raskolnikov take to the pawnbroker?",
+      "answerable": true,
+      "retrieved": [
+        "CrimeAndPunishment.txt#201",
+        "CrimeAndPunishment.txt#203",
+        "CrimeAndPunishment.txt#29",
+        "CrimeAndPunishment.txt#518",
+        "CrimeAndPunishment.txt#811",
+        "CrimeAndPunishment.txt#468",
+        "CrimeAndPunishment.txt#1397",
+        "CrimeAndPunishment.txt#1515",
+        "CrimeAndPunishment.txt#1257",
+        "CrimeAndPunishment.txt#1533"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#201": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#203": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#29": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#518": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#811": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#468": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#1397": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#1515": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#1257": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#1533": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#201",
+          "CrimeAndPunishment.txt#203",
+          "CrimeAndPunishment.txt#29",
+          "CrimeAndPunishment.txt#518",
+          "CrimeAndPunishment.txt#811",
+          "CrimeAndPunishment.txt#468",
+          "CrimeAndPunishment.txt#1397",
+          "CrimeAndPunishment.txt#1515",
+          "CrimeAndPunishment.txt#1257",
+          "CrimeAndPunishment.txt#1533"
+        ]
+      },
+      "retrieval_latency_ms": 690,
+      "retriever_timings_ms": {
+        "dense": 609
+      },
+      "notes": [],
+      "evidence_ranks": [
+        null
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 0,
+        "hit@5": 0,
+        "hit@10": 0
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0
+      },
+      "first_rank": null,
+      "retriever_ranks": {
+        "dense": [
+          null
+        ]
+      }
+    },
+    {
+      "id": "o06",
+      "type": "exact_identifier",
+      "question": "What is Porfiry Petrovitch's position?",
+      "answerable": true,
+      "retrieved": [
+        "CrimeAndPunishment.txt#959",
+        "CrimeAndPunishment.txt#967",
+        "CrimeAndPunishment.txt#996",
+        "CrimeAndPunishment.txt#1011",
+        "CrimeAndPunishment.txt#728",
+        "CrimeAndPunishment.txt#966",
+        "CrimeAndPunishment.txt#730",
+        "CrimeAndPunishment.txt#744",
+        "CrimeAndPunishment.txt#1291",
+        "CrimeAndPunishment.txt#968"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#959": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#967": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#996": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#1011": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#728": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#966": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#730": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#744": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#1291": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#968": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#959",
+          "CrimeAndPunishment.txt#967",
+          "CrimeAndPunishment.txt#996",
+          "CrimeAndPunishment.txt#1011",
+          "CrimeAndPunishment.txt#728",
+          "CrimeAndPunishment.txt#966",
+          "CrimeAndPunishment.txt#730",
+          "CrimeAndPunishment.txt#744",
+          "CrimeAndPunishment.txt#1291",
+          "CrimeAndPunishment.txt#968"
+        ]
+      },
+      "retrieval_latency_ms": 592,
+      "retriever_timings_ms": {
+        "dense": 495
+      },
+      "notes": [],
+      "evidence_ranks": [
+        null
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 0,
+        "hit@5": 0,
+        "hit@10": 0
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0
+      },
+      "first_rank": null,
+      "retriever_ranks": {
+        "dense": [
+          null
+        ]
+      }
+    },
+    {
+      "id": "o07",
+      "type": "split_answer",
+      "question": "Who is Lizaveta in relation to the pawnbroker?",
+      "answerable": true,
+      "retrieved": [
+        "CrimeAndPunishment.txt#205",
+        "CrimeAndPunishment.txt#196",
+        "CrimeAndPunishment.txt#206",
+        "CrimeAndPunishment.txt#1408",
+        "CrimeAndPunishment.txt#405",
+        "CrimeAndPunishment.txt#200",
+        "CrimeAndPunishment.txt#1167",
+        "CrimeAndPunishment.txt#201",
+        "CrimeAndPunishment.txt#411",
+        "CrimeAndPunishment.txt#22"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#205": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#196": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#206": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#1408": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#405": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#200": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#1167": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#201": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#411": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#22": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#205",
+          "CrimeAndPunishment.txt#196",
+          "CrimeAndPunishment.txt#206",
+          "CrimeAndPunishment.txt#1408",
+          "CrimeAndPunishment.txt#405",
+          "CrimeAndPunishment.txt#200",
+          "CrimeAndPunishment.txt#1167",
+          "CrimeAndPunishment.txt#201",
+          "CrimeAndPunishment.txt#411",
+          "CrimeAndPunishment.txt#22"
+        ]
+      },
+      "retrieval_latency_ms": 607,
+      "retriever_timings_ms": {
+        "dense": 532
+      },
+      "notes": [],
+      "evidence_ranks": [
+        null,
+        2
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 0.5,
+        "recall@5": 0.5,
+        "recall@10": 0.5
+      },
+      "first_rank": 2,
+      "retriever_ranks": {
+        "dense": [
+          null,
+          2
+        ]
+      }
+    },
+    {
+      "id": "o08",
+      "type": "vocabulary",
+      "question": "How long ago did Raskolnikov first come to the pawnbroker?",
+      "answerable": true,
+      "retrieved": [
+        "CrimeAndPunishment.txt#201",
+        "CrimeAndPunishment.txt#811",
+        "CrimeAndPunishment.txt#1515",
+        "CrimeAndPunishment.txt#794",
+        "CrimeAndPunishment.txt#203",
+        "CrimeAndPunishment.txt#1561",
+        "CrimeAndPunishment.txt#1452",
+        "CrimeAndPunishment.txt#468",
+        "CrimeAndPunishment.txt#957",
+        "CrimeAndPunishment.txt#1472"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#201": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#811": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#1515": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#794": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#203": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#1561": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#1452": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#468": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#957": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#1472": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#201",
+          "CrimeAndPunishment.txt#811",
+          "CrimeAndPunishment.txt#1515",
+          "CrimeAndPunishment.txt#794",
+          "CrimeAndPunishment.txt#203",
+          "CrimeAndPunishment.txt#1561",
+          "CrimeAndPunishment.txt#1452",
+          "CrimeAndPunishment.txt#468",
+          "CrimeAndPunishment.txt#957",
+          "CrimeAndPunishment.txt#1472"
+        ]
+      },
+      "retrieval_latency_ms": 813,
+      "retriever_timings_ms": {
+        "dense": 743
+      },
+      "notes": [],
+      "evidence_ranks": [
+        null
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 0,
+        "hit@5": 0,
+        "hit@10": 0
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 0.0
+      },
+      "first_rank": null,
+      "retriever_ranks": {
+        "dense": [
+          null
+        ]
+      }
+    },
+    {
+      "id": "o09",
+      "type": "not_in_corpus",
+      "question": "What is the price of the Vellora Duo espresso machine?",
+      "answerable": false,
+      "retrieved": [
+        "CrimeAndPunishment.txt#1589",
+        "CrimeAndPunishment.txt#393",
+        "CrimeAndPunishment.txt#126",
+        "CrimeAndPunishment.txt#1597",
+        "CrimeAndPunishment.txt#1588",
+        "CrimeAndPunishment.txt#1591",
+        "CrimeAndPunishment.txt#1446",
+        "CrimeAndPunishment.txt#395",
+        "CrimeAndPunishment.txt#397",
+        "CrimeAndPunishment.txt#1419"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#1589": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#393": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#126": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#1597": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#1588": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#1591": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#1446": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#395": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#397": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#1419": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#1589",
+          "CrimeAndPunishment.txt#393",
+          "CrimeAndPunishment.txt#126",
+          "CrimeAndPunishment.txt#1597",
+          "CrimeAndPunishment.txt#1588",
+          "CrimeAndPunishment.txt#1591",
+          "CrimeAndPunishment.txt#1446",
+          "CrimeAndPunishment.txt#395",
+          "CrimeAndPunishment.txt#397",
+          "CrimeAndPunishment.txt#1419"
+        ]
+      },
+      "retrieval_latency_ms": 627,
+      "retriever_timings_ms": {
+        "dense": 547
+      },
+      "notes": []
+    },
+    {
+      "id": "o10",
+      "type": "not_in_corpus",
+      "question": "What is the capital of Brazil?",
+      "answerable": false,
+      "retrieved": [
+        "CrimeAndPunishment.txt#701",
+        "CrimeAndPunishment.txt#53",
+        "CrimeAndPunishment.txt#1133",
+        "CrimeAndPunishment.txt#1339",
+        "CrimeAndPunishment.txt#1069",
+        "CrimeAndPunishment.txt#626",
+        "CrimeAndPunishment.txt#1138",
+        "CrimeAndPunishment.txt#1340",
+        "CrimeAndPunishment.txt#859",
+        "CrimeAndPunishment.txt#1134"
+      ],
+      "found_by": {
+        "CrimeAndPunishment.txt#701": {
+          "dense": 1
+        },
+        "CrimeAndPunishment.txt#53": {
+          "dense": 2
+        },
+        "CrimeAndPunishment.txt#1133": {
+          "dense": 3
+        },
+        "CrimeAndPunishment.txt#1339": {
+          "dense": 4
+        },
+        "CrimeAndPunishment.txt#1069": {
+          "dense": 5
+        },
+        "CrimeAndPunishment.txt#626": {
+          "dense": 6
+        },
+        "CrimeAndPunishment.txt#1138": {
+          "dense": 7
+        },
+        "CrimeAndPunishment.txt#1340": {
+          "dense": 8
+        },
+        "CrimeAndPunishment.txt#859": {
+          "dense": 9
+        },
+        "CrimeAndPunishment.txt#1134": {
+          "dense": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "CrimeAndPunishment.txt#701",
+          "CrimeAndPunishment.txt#53",
+          "CrimeAndPunishment.txt#1133",
+          "CrimeAndPunishment.txt#1339",
+          "CrimeAndPunishment.txt#1069",
+          "CrimeAndPunishment.txt#626",
+          "CrimeAndPunishment.txt#1138",
+          "CrimeAndPunishment.txt#1340",
+          "CrimeAndPunishment.txt#859",
+          "CrimeAndPunishment.txt#1134"
+        ]
+      },
+      "retrieval_latency_ms": 613,
+      "retriever_timings_ms": {
+        "dense": 547
+      },
+      "notes": []
+    }
+  ]
+}

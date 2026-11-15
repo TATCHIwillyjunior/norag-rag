@@ -1,0 +1,2035 @@
+{
+  "corpus": "kestrel",
+  "generated_at": "2026-11-15T10:08:27+00:00",
+  "retrievers": [
+    "dense",
+    "bm25",
+    "graph"
+  ],
+  "candidates": 20,
+  "rrf_k": 60,
+  "chunk_size": 800,
+  "overlap_percent": 10,
+  "embedding_model": "all-MiniLM-L6-v2",
+  "llm_model": null,
+  "answer_top_k": null,
+  "evidence_problems": [],
+  "summary": {
+    "answerable_questions": 11,
+    "unanswerable_questions": 2,
+    "overall": {
+      "n": 11,
+      "hit@1": 0.7272727272727273,
+      "hit@3": 0.9090909090909091,
+      "hit@5": 0.9090909090909091,
+      "hit@10": 1.0,
+      "recall@1": 0.40151515151515155,
+      "recall@3": 0.7651515151515151,
+      "recall@5": 0.7954545454545454,
+      "recall@10": 1.0,
+      "mrr": 0.7992424242424242
+    },
+    "per_type": {
+      "exact_identifier": {
+        "n": 2,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "hit@10": 1.0,
+        "recall@1": 0.75,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "mrr": 1.0
+      },
+      "split_answer": {
+        "n": 2,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "hit@10": 1.0,
+        "recall@1": 0.375,
+        "recall@3": 0.625,
+        "recall@5": 0.625,
+        "recall@10": 1.0,
+        "mrr": 1.0
+      },
+      "two_hop": {
+        "n": 4,
+        "hit@1": 1.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "hit@10": 1.0,
+        "recall@1": 0.5416666666666666,
+        "recall@3": 0.7916666666666666,
+        "recall@5": 0.875,
+        "recall@10": 1.0,
+        "mrr": 1.0
+      },
+      "versions": {
+        "n": 2,
+        "hit@1": 0.0,
+        "hit@3": 1.0,
+        "hit@5": 1.0,
+        "hit@10": 1.0,
+        "recall@1": 0.0,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0,
+        "mrr": 0.3333333333333333
+      },
+      "vocabulary": {
+        "n": 1,
+        "hit@1": 0.0,
+        "hit@3": 0.0,
+        "hit@5": 0.0,
+        "hit@10": 1.0,
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 1.0,
+        "mrr": 0.125
+      }
+    }
+  },
+  "per_retriever_summary": {
+    "dense": {
+      "answerable_questions": 11,
+      "unanswerable_questions": 0,
+      "overall": {
+        "n": 11,
+        "hit@1": 0.6363636363636364,
+        "hit@3": 0.8181818181818182,
+        "hit@5": 0.9090909090909091,
+        "hit@10": 1.0,
+        "recall@1": 0.40151515151515155,
+        "recall@3": 0.696969696969697,
+        "recall@5": 0.7424242424242423,
+        "recall@10": 0.9090909090909091,
+        "mrr": 0.7478354978354979
+      },
+      "per_type": {
+        "exact_identifier": {
+          "n": 2,
+          "hit@1": 0.5,
+          "hit@3": 0.5,
+          "hit@5": 0.5,
+          "hit@10": 1.0,
+          "recall@1": 0.25,
+          "recall@3": 0.5,
+          "recall@5": 0.5,
+          "recall@10": 1.0,
+          "mrr": 0.5714285714285714
+        },
+        "split_answer": {
+          "n": 2,
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 0.625,
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 1.0
+        },
+        "two_hop": {
+          "n": 4,
+          "hit@1": 0.75,
+          "hit@3": 0.75,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 0.41666666666666663,
+          "recall@3": 0.41666666666666663,
+          "recall@5": 0.5416666666666666,
+          "recall@10": 0.75,
+          "mrr": 0.8125
+        },
+        "versions": {
+          "n": 2,
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 0.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.41666666666666663
+        },
+        "vocabulary": {
+          "n": 1,
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 1.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 1.0
+        }
+      }
+    },
+    "bm25": {
+      "answerable_questions": 11,
+      "unanswerable_questions": 0,
+      "overall": {
+        "n": 11,
+        "hit@1": 0.5454545454545454,
+        "hit@3": 0.9090909090909091,
+        "hit@5": 0.9090909090909091,
+        "hit@10": 0.9090909090909091,
+        "recall@1": 0.28787878787878785,
+        "recall@3": 0.6287878787878788,
+        "recall@5": 0.6742424242424243,
+        "recall@10": 0.7196969696969697,
+        "mrr": 0.696969696969697
+      },
+      "per_type": {
+        "exact_identifier": {
+          "n": 2,
+          "hit@1": 0.5,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 0.25,
+          "recall@3": 0.75,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.6666666666666666
+        },
+        "split_answer": {
+          "n": 2,
+          "hit@1": 0.5,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 0.25,
+          "recall@3": 0.625,
+          "recall@5": 0.625,
+          "recall@10": 0.625,
+          "mrr": 0.75
+        },
+        "two_hop": {
+          "n": 4,
+          "hit@1": 1.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 0.5416666666666666,
+          "recall@3": 0.5416666666666666,
+          "recall@5": 0.5416666666666666,
+          "recall@10": 0.6666666666666666,
+          "mrr": 1.0
+        },
+        "versions": {
+          "n": 2,
+          "hit@1": 0.0,
+          "hit@3": 1.0,
+          "hit@5": 1.0,
+          "hit@10": 1.0,
+          "recall@1": 0.0,
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "mrr": 0.41666666666666663
+        },
+        "vocabulary": {
+          "n": 1,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "hit@10": 0.0,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0
+        }
+      }
+    },
+    "graph": {
+      "answerable_questions": 11,
+      "unanswerable_questions": 0,
+      "overall": {
+        "n": 11,
+        "hit@1": 0.2727272727272727,
+        "hit@3": 0.36363636363636365,
+        "hit@5": 0.45454545454545453,
+        "hit@10": 0.5454545454545454,
+        "recall@1": 0.18181818181818182,
+        "recall@3": 0.28787878787878785,
+        "recall@5": 0.37878787878787884,
+        "recall@10": 0.5454545454545454,
+        "mrr": 0.3409090909090909
+      },
+      "per_type": {
+        "exact_identifier": {
+          "n": 2,
+          "hit@1": 0.5,
+          "hit@3": 0.5,
+          "hit@5": 0.5,
+          "hit@10": 0.5,
+          "recall@1": 0.5,
+          "recall@3": 0.5,
+          "recall@5": 0.5,
+          "recall@10": 0.5,
+          "mrr": 0.5
+        },
+        "split_answer": {
+          "n": 2,
+          "hit@1": 0.5,
+          "hit@3": 0.5,
+          "hit@5": 0.5,
+          "hit@10": 0.5,
+          "recall@1": 0.25,
+          "recall@3": 0.25,
+          "recall@5": 0.5,
+          "recall@10": 0.5,
+          "mrr": 0.5
+        },
+        "two_hop": {
+          "n": 4,
+          "hit@1": 0.25,
+          "hit@3": 0.5,
+          "hit@5": 0.75,
+          "hit@10": 1.0,
+          "recall@1": 0.125,
+          "recall@3": 0.41666666666666663,
+          "recall@5": 0.5416666666666666,
+          "recall@10": 1.0,
+          "mrr": 0.4375
+        },
+        "versions": {
+          "n": 2,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "hit@10": 0.0,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0
+        },
+        "vocabulary": {
+          "n": 1,
+          "hit@1": 0.0,
+          "hit@3": 0.0,
+          "hit@5": 0.0,
+          "hit@10": 0.0,
+          "recall@1": 0.0,
+          "recall@3": 0.0,
+          "recall@5": 0.0,
+          "recall@10": 0.0,
+          "mrr": 0.0
+        }
+      }
+    }
+  },
+  "cost": {
+    "avg_retrieval_ms": 710,
+    "retrieval_llm_calls_per_question": 0
+  },
+  "rows": [
+    {
+      "id": "q01",
+      "type": "exact_identifier",
+      "question": "What does error KST-2044 mean and how do I fix it?",
+      "answerable": true,
+      "retrieved": [
+        "support-runbook-errors.md#4",
+        "support-runbook-errors.md#0",
+        "support-runbook-errors.md#3",
+        "support-runbook-errors.md#6",
+        "support-runbook-errors.md#8",
+        "support-runbook-errors.md#2",
+        "product-guide.md#11",
+        "service-catalog.md#0",
+        "support-runbook-errors.md#5",
+        "support-runbook-errors.md#1"
+      ],
+      "found_by": {
+        "support-runbook-errors.md#4": {
+          "dense": 7,
+          "bm25": 3,
+          "graph": 1
+        },
+        "support-runbook-errors.md#0": {
+          "dense": 4,
+          "bm25": 1
+        },
+        "support-runbook-errors.md#3": {
+          "dense": 3,
+          "bm25": 2
+        },
+        "support-runbook-errors.md#6": {
+          "dense": 2,
+          "bm25": 8
+        },
+        "support-runbook-errors.md#8": {
+          "dense": 1,
+          "bm25": 11
+        },
+        "support-runbook-errors.md#2": {
+          "dense": 10,
+          "bm25": 4
+        },
+        "product-guide.md#11": {
+          "dense": 6,
+          "bm25": 10
+        },
+        "service-catalog.md#0": {
+          "dense": 13,
+          "bm25": 5
+        },
+        "support-runbook-errors.md#5": {
+          "dense": 5,
+          "bm25": 19
+        },
+        "support-runbook-errors.md#1": {
+          "dense": 9,
+          "bm25": 14
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "support-runbook-errors.md#8",
+          "support-runbook-errors.md#6",
+          "support-runbook-errors.md#3",
+          "support-runbook-errors.md#0",
+          "support-runbook-errors.md#5",
+          "product-guide.md#11",
+          "support-runbook-errors.md#4",
+          "support-runbook-errors.md#9",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#2"
+        ],
+        "bm25": [
+          "support-runbook-errors.md#0",
+          "support-runbook-errors.md#3",
+          "support-runbook-errors.md#4",
+          "support-runbook-errors.md#2",
+          "service-catalog.md#0",
+          "billing-policy-2026.md#0",
+          "billing-policy-2025.md#0",
+          "support-runbook-errors.md#6",
+          "product-guide.md#0",
+          "product-guide.md#11"
+        ],
+        "graph": [
+          "support-runbook-errors.md#4",
+          "service-catalog.md#1",
+          "service-catalog.md#3"
+        ]
+      },
+      "retrieval_latency_ms": 2240,
+      "retriever_timings_ms": {
+        "dense": 2074,
+        "bm25": 79,
+        "graph": 8
+      },
+      "notes": [],
+      "evidence_ranks": [
+        1,
+        1
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 1.0,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          7,
+          7
+        ],
+        "bm25": [
+          3,
+          3
+        ],
+        "graph": [
+          1,
+          1
+        ]
+      },
+      "graph_relevant_chunks": [
+        "support-runbook-errors.md#4"
+      ],
+      "graph_relevant_in_fused_top5": [
+        "support-runbook-errors.md#4"
+      ]
+    },
+    {
+      "id": "q02",
+      "type": "exact_identifier",
+      "question": "A user gets KST-4012 when accepting an invitation. What should support tell them?",
+      "answerable": true,
+      "retrieved": [
+        "support-runbook-errors.md#6",
+        "support-runbook-errors.md#7",
+        "support-runbook-errors.md#2",
+        "support-runbook-errors.md#3",
+        "support-runbook-errors.md#0",
+        "product-guide.md#3",
+        "support-runbook-errors.md#5",
+        "support-runbook-errors.md#8",
+        "product-guide.md#4",
+        "support-runbook-errors.md#1"
+      ],
+      "found_by": {
+        "support-runbook-errors.md#6": {
+          "dense": 2,
+          "bm25": 1
+        },
+        "support-runbook-errors.md#7": {
+          "dense": 1,
+          "bm25": 4
+        },
+        "support-runbook-errors.md#2": {
+          "dense": 9,
+          "bm25": 2
+        },
+        "support-runbook-errors.md#3": {
+          "dense": 3,
+          "bm25": 8
+        },
+        "support-runbook-errors.md#0": {
+          "dense": 10,
+          "bm25": 3
+        },
+        "product-guide.md#3": {
+          "dense": 7,
+          "bm25": 6
+        },
+        "support-runbook-errors.md#5": {
+          "dense": 6,
+          "bm25": 7
+        },
+        "support-runbook-errors.md#8": {
+          "dense": 4,
+          "bm25": 11
+        },
+        "product-guide.md#4": {
+          "dense": 14,
+          "bm25": 5
+        },
+        "support-runbook-errors.md#1": {
+          "dense": 8,
+          "bm25": 13
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "support-runbook-errors.md#7",
+          "support-runbook-errors.md#6",
+          "support-runbook-errors.md#3",
+          "support-runbook-errors.md#8",
+          "product-guide.md#11",
+          "support-runbook-errors.md#5",
+          "product-guide.md#3",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#2",
+          "support-runbook-errors.md#0"
+        ],
+        "bm25": [
+          "support-runbook-errors.md#6",
+          "support-runbook-errors.md#2",
+          "support-runbook-errors.md#0",
+          "support-runbook-errors.md#7",
+          "product-guide.md#4",
+          "product-guide.md#3",
+          "support-runbook-errors.md#5",
+          "support-runbook-errors.md#3",
+          "support-runbook-errors.md#4",
+          "support-runbook-errors.md#9"
+        ],
+        "graph": []
+      },
+      "retrieval_latency_ms": 633,
+      "retriever_timings_ms": {
+        "dense": 545,
+        "bm25": 6,
+        "graph": 1
+      },
+      "notes": [
+        "No usable entity of the graph was found in the question."
+      ],
+      "evidence_ranks": [
+        1,
+        2
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.5,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          2,
+          1
+        ],
+        "bm25": [
+          1,
+          4
+        ],
+        "graph": [
+          null,
+          null
+        ]
+      },
+      "graph_relevant_chunks": [],
+      "graph_relevant_in_fused_top5": []
+    },
+    {
+      "id": "q03",
+      "type": "split_answer",
+      "question": "What happens, step by step, when a customer's card payment fails?",
+      "answerable": true,
+      "retrieved": [
+        "billing-policy-2026.md#4",
+        "support-runbook-errors.md#9",
+        "billing-policy-2025.md#3",
+        "billing-policy-2025.md#4",
+        "support-runbook-errors.md#10",
+        "billing-policy-2025.md#1",
+        "billing-policy-2026.md#5",
+        "billing-policy-2026.md#2",
+        "service-catalog.md#2",
+        "support-runbook-errors.md#8"
+      ],
+      "found_by": {
+        "billing-policy-2026.md#4": {
+          "dense": 2,
+          "bm25": 2
+        },
+        "support-runbook-errors.md#9": {
+          "dense": 4,
+          "bm25": 1
+        },
+        "billing-policy-2025.md#3": {
+          "dense": 3,
+          "bm25": 4
+        },
+        "billing-policy-2025.md#4": {
+          "dense": 6,
+          "bm25": 6
+        },
+        "support-runbook-errors.md#10": {
+          "dense": 5,
+          "bm25": 8
+        },
+        "billing-policy-2025.md#1": {
+          "dense": 7,
+          "bm25": 9
+        },
+        "billing-policy-2026.md#5": {
+          "dense": 1,
+          "bm25": 17
+        },
+        "billing-policy-2026.md#2": {
+          "dense": 8,
+          "bm25": 10
+        },
+        "service-catalog.md#2": {
+          "dense": 9,
+          "bm25": 11
+        },
+        "support-runbook-errors.md#8": {
+          "dense": 19,
+          "bm25": 3
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "billing-policy-2026.md#5",
+          "billing-policy-2026.md#4",
+          "billing-policy-2025.md#3",
+          "support-runbook-errors.md#9",
+          "support-runbook-errors.md#10",
+          "billing-policy-2025.md#4",
+          "billing-policy-2025.md#1",
+          "billing-policy-2026.md#2",
+          "service-catalog.md#2",
+          "billing-policy-2026.md#1"
+        ],
+        "bm25": [
+          "support-runbook-errors.md#9",
+          "billing-policy-2026.md#4",
+          "support-runbook-errors.md#8",
+          "billing-policy-2025.md#3",
+          "support-runbook-errors.md#0",
+          "billing-policy-2025.md#4",
+          "service-catalog.md#0",
+          "support-runbook-errors.md#10",
+          "billing-policy-2025.md#1",
+          "billing-policy-2026.md#2"
+        ],
+        "graph": []
+      },
+      "retrieval_latency_ms": 607,
+      "retriever_timings_ms": {
+        "dense": 520,
+        "bm25": 6,
+        "graph": 1
+      },
+      "notes": [
+        "No usable entity of the graph was found in the question."
+      ],
+      "evidence_ranks": [
+        1,
+        7,
+        7,
+        7
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.25,
+        "recall@3": 0.25,
+        "recall@5": 0.25,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          2,
+          1,
+          1,
+          1
+        ],
+        "bm25": [
+          2,
+          null,
+          null,
+          null
+        ],
+        "graph": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "graph_relevant_chunks": [],
+      "graph_relevant_in_fused_top5": []
+    },
+    {
+      "id": "q04",
+      "type": "split_answer",
+      "question": "Which plans include single sign-on, and how does an admin set it up?",
+      "answerable": true,
+      "retrieved": [
+        "product-guide.md#5",
+        "product-guide.md#1",
+        "product-guide.md#9",
+        "billing-policy-2025.md#0",
+        "product-guide.md#6",
+        "support-runbook-errors.md#2",
+        "billing-policy-2026.md#0",
+        "service-catalog.md#0",
+        "support-runbook-errors.md#1",
+        "product-guide.md#2"
+      ],
+      "found_by": {
+        "product-guide.md#5": {
+          "dense": 1,
+          "bm25": 1,
+          "graph": 1
+        },
+        "product-guide.md#1": {
+          "dense": 3,
+          "bm25": 3,
+          "graph": 4
+        },
+        "product-guide.md#9": {
+          "dense": 7,
+          "bm25": 14,
+          "graph": 5
+        },
+        "billing-policy-2025.md#0": {
+          "dense": 17,
+          "bm25": 7,
+          "graph": 3
+        },
+        "product-guide.md#6": {
+          "dense": 4,
+          "bm25": 2
+        },
+        "support-runbook-errors.md#2": {
+          "dense": 5,
+          "bm25": 4
+        },
+        "billing-policy-2026.md#0": {
+          "bm25": 8,
+          "graph": 2
+        },
+        "service-catalog.md#0": {
+          "dense": 11,
+          "bm25": 5
+        },
+        "support-runbook-errors.md#1": {
+          "dense": 6,
+          "bm25": 11
+        },
+        "product-guide.md#2": {
+          "dense": 2,
+          "bm25": 17
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "product-guide.md#5",
+          "product-guide.md#2",
+          "product-guide.md#1",
+          "product-guide.md#6",
+          "support-runbook-errors.md#2",
+          "support-runbook-errors.md#1",
+          "product-guide.md#9",
+          "service-catalog.md#3",
+          "product-guide.md#4",
+          "billing-policy-2026.md#1"
+        ],
+        "bm25": [
+          "product-guide.md#5",
+          "product-guide.md#6",
+          "product-guide.md#1",
+          "support-runbook-errors.md#2",
+          "service-catalog.md#0",
+          "support-runbook-errors.md#3",
+          "billing-policy-2025.md#0",
+          "billing-policy-2026.md#0",
+          "product-guide.md#4",
+          "billing-policy-2026.md#6"
+        ],
+        "graph": [
+          "product-guide.md#5",
+          "billing-policy-2026.md#0",
+          "billing-policy-2025.md#0",
+          "product-guide.md#1",
+          "product-guide.md#9"
+        ]
+      },
+      "retrieval_latency_ms": 679,
+      "retriever_timings_ms": {
+        "dense": 579,
+        "bm25": 6,
+        "graph": 1
+      },
+      "notes": [],
+      "evidence_ranks": [
+        2,
+        1
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.5,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          3,
+          1
+        ],
+        "bm25": [
+          3,
+          1
+        ],
+        "graph": [
+          4,
+          1
+        ]
+      },
+      "graph_relevant_chunks": [
+        "product-guide.md#5",
+        "product-guide.md#1"
+      ],
+      "graph_relevant_in_fused_top5": [
+        "product-guide.md#5",
+        "product-guide.md#1"
+      ]
+    },
+    {
+      "id": "q05",
+      "type": "vocabulary",
+      "question": "I lost my phone and I can't log in anymore. What can I do?",
+      "answerable": true,
+      "retrieved": [
+        "support-runbook-errors.md#2",
+        "support-runbook-errors.md#0",
+        "product-guide.md#5",
+        "product-guide.md#7",
+        "product-guide.md#4",
+        "billing-policy-2026.md#5",
+        "service-catalog.md#3",
+        "product-guide.md#6",
+        "product-guide.md#2",
+        "billing-policy-2025.md#2"
+      ],
+      "found_by": {
+        "support-runbook-errors.md#2": {
+          "dense": 2,
+          "bm25": 4
+        },
+        "support-runbook-errors.md#0": {
+          "dense": 18,
+          "bm25": 1
+        },
+        "product-guide.md#5": {
+          "dense": 9,
+          "bm25": 10
+        },
+        "product-guide.md#7": {
+          "dense": 7,
+          "bm25": 16
+        },
+        "product-guide.md#4": {
+          "dense": 12,
+          "bm25": 12
+        },
+        "billing-policy-2026.md#5": {
+          "dense": 8,
+          "bm25": 17
+        },
+        "service-catalog.md#3": {
+          "dense": 16,
+          "bm25": 9
+        },
+        "product-guide.md#6": {
+          "dense": 1
+        },
+        "product-guide.md#2": {
+          "bm25": 2
+        },
+        "billing-policy-2025.md#2": {
+          "bm25": 3
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "product-guide.md#6",
+          "support-runbook-errors.md#2",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#3",
+          "product-guide.md#11",
+          "support-runbook-errors.md#9",
+          "product-guide.md#7",
+          "billing-policy-2026.md#5",
+          "product-guide.md#5",
+          "product-guide.md#10"
+        ],
+        "bm25": [
+          "support-runbook-errors.md#0",
+          "product-guide.md#2",
+          "billing-policy-2025.md#2",
+          "support-runbook-errors.md#2",
+          "support-runbook-errors.md#6",
+          "product-guide.md#0",
+          "service-catalog.md#0",
+          "product-guide.md#1",
+          "service-catalog.md#3",
+          "product-guide.md#5"
+        ],
+        "graph": []
+      },
+      "retrieval_latency_ms": 535,
+      "retriever_timings_ms": {
+        "dense": 453,
+        "bm25": 5,
+        "graph": 1
+      },
+      "notes": [
+        "No usable entity of the graph was found in the question."
+      ],
+      "evidence_ranks": [
+        8,
+        8
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 0,
+        "hit@5": 0,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 0.0,
+        "recall@5": 0.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 8,
+      "retriever_ranks": {
+        "dense": [
+          1,
+          1
+        ],
+        "bm25": [
+          null,
+          null
+        ],
+        "graph": [
+          null,
+          null
+        ]
+      },
+      "graph_relevant_chunks": [],
+      "graph_relevant_in_fused_top5": []
+    },
+    {
+      "id": "q06",
+      "type": "versions",
+      "question": "Can I get a refund on my annual plan 45 days after it renewed?",
+      "answerable": true,
+      "retrieved": [
+        "billing-policy-2026.md#4",
+        "billing-policy-2025.md#3",
+        "billing-policy-2026.md#3",
+        "billing-policy-2026.md#6",
+        "billing-policy-2025.md#4",
+        "billing-policy-2025.md#0",
+        "billing-policy-2025.md#1",
+        "billing-policy-2026.md#5",
+        "product-guide.md#10",
+        "billing-policy-2026.md#1"
+      ],
+      "found_by": {
+        "billing-policy-2026.md#4": {
+          "dense": 2,
+          "bm25": 1
+        },
+        "billing-policy-2025.md#3": {
+          "dense": 1,
+          "bm25": 3
+        },
+        "billing-policy-2026.md#3": {
+          "dense": 3,
+          "bm25": 2
+        },
+        "billing-policy-2026.md#6": {
+          "dense": 4,
+          "bm25": 5
+        },
+        "billing-policy-2025.md#4": {
+          "dense": 7,
+          "bm25": 4
+        },
+        "billing-policy-2025.md#0": {
+          "dense": 5,
+          "bm25": 9
+        },
+        "billing-policy-2025.md#1": {
+          "dense": 8,
+          "bm25": 7
+        },
+        "billing-policy-2026.md#5": {
+          "dense": 9,
+          "bm25": 8
+        },
+        "product-guide.md#10": {
+          "dense": 14,
+          "bm25": 6
+        },
+        "billing-policy-2026.md#1": {
+          "dense": 13,
+          "bm25": 10
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "billing-policy-2025.md#3",
+          "billing-policy-2026.md#4",
+          "billing-policy-2026.md#3",
+          "billing-policy-2026.md#6",
+          "billing-policy-2025.md#0",
+          "billing-policy-2026.md#0",
+          "billing-policy-2025.md#4",
+          "billing-policy-2025.md#1",
+          "billing-policy-2026.md#5",
+          "support-runbook-errors.md#10"
+        ],
+        "bm25": [
+          "billing-policy-2026.md#4",
+          "billing-policy-2026.md#3",
+          "billing-policy-2025.md#3",
+          "billing-policy-2025.md#4",
+          "billing-policy-2026.md#6",
+          "product-guide.md#10",
+          "billing-policy-2025.md#1",
+          "billing-policy-2026.md#5",
+          "billing-policy-2025.md#0",
+          "billing-policy-2026.md#1"
+        ],
+        "graph": []
+      },
+      "retrieval_latency_ms": 530,
+      "retriever_timings_ms": {
+        "dense": 441,
+        "bm25": 5,
+        "graph": 0
+      },
+      "notes": [
+        "No usable entity of the graph was found in the question."
+      ],
+      "evidence_ranks": [
+        3,
+        3
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 3,
+      "retriever_ranks": {
+        "dense": [
+          3,
+          3
+        ],
+        "bm25": [
+          2,
+          2
+        ],
+        "graph": [
+          null,
+          null
+        ]
+      },
+      "graph_relevant_chunks": [],
+      "graph_relevant_in_fused_top5": []
+    },
+    {
+      "id": "q07",
+      "type": "versions",
+      "question": "How much do I save by paying annually instead of monthly?",
+      "answerable": true,
+      "retrieved": [
+        "billing-policy-2025.md#0",
+        "billing-policy-2025.md#1",
+        "billing-policy-2026.md#1",
+        "billing-policy-2026.md#0",
+        "billing-policy-2026.md#3",
+        "billing-policy-2025.md#3",
+        "product-guide.md#9",
+        "billing-policy-2026.md#2",
+        "billing-policy-2026.md#4",
+        "product-guide.md#1"
+      ],
+      "found_by": {
+        "billing-policy-2025.md#0": {
+          "dense": 3,
+          "bm25": 1
+        },
+        "billing-policy-2025.md#1": {
+          "dense": 1,
+          "bm25": 4
+        },
+        "billing-policy-2026.md#1": {
+          "dense": 2,
+          "bm25": 3
+        },
+        "billing-policy-2026.md#0": {
+          "dense": 4,
+          "bm25": 2
+        },
+        "billing-policy-2026.md#3": {
+          "dense": 6,
+          "bm25": 8
+        },
+        "billing-policy-2025.md#3": {
+          "dense": 7,
+          "bm25": 7
+        },
+        "product-guide.md#9": {
+          "dense": 12,
+          "bm25": 6
+        },
+        "billing-policy-2026.md#2": {
+          "dense": 14,
+          "bm25": 9
+        },
+        "billing-policy-2026.md#4": {
+          "dense": 9,
+          "bm25": 14
+        },
+        "product-guide.md#1": {
+          "dense": 13,
+          "bm25": 11
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "billing-policy-2025.md#1",
+          "billing-policy-2026.md#1",
+          "billing-policy-2025.md#0",
+          "billing-policy-2026.md#0",
+          "billing-policy-2026.md#6",
+          "billing-policy-2026.md#3",
+          "billing-policy-2025.md#3",
+          "billing-policy-2025.md#5",
+          "billing-policy-2026.md#4",
+          "service-catalog.md#3"
+        ],
+        "bm25": [
+          "billing-policy-2025.md#0",
+          "billing-policy-2026.md#0",
+          "billing-policy-2026.md#1",
+          "billing-policy-2025.md#1",
+          "support-runbook-errors.md#0",
+          "product-guide.md#9",
+          "billing-policy-2025.md#3",
+          "billing-policy-2026.md#3",
+          "billing-policy-2026.md#2",
+          "billing-policy-2025.md#2"
+        ],
+        "graph": []
+      },
+      "retrieval_latency_ms": 540,
+      "retriever_timings_ms": {
+        "dense": 466,
+        "bm25": 6,
+        "graph": 2
+      },
+      "notes": [
+        "No usable entity of the graph was found in the question."
+      ],
+      "evidence_ranks": [
+        3
+      ],
+      "hit": {
+        "hit@1": 0,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.0,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 3,
+      "retriever_ranks": {
+        "dense": [
+          2
+        ],
+        "bm25": [
+          3
+        ],
+        "graph": [
+          null
+        ]
+      },
+      "graph_relevant_chunks": [],
+      "graph_relevant_in_fused_top5": []
+    },
+    {
+      "id": "q08",
+      "type": "two_hop",
+      "question": "Error KST-5031 happened on the last two scheduled reports. Which team should support contact, and where?",
+      "answerable": true,
+      "retrieved": [
+        "support-runbook-errors.md#8",
+        "support-runbook-errors.md#7",
+        "service-catalog.md#2",
+        "product-guide.md#11",
+        "support-runbook-errors.md#0",
+        "service-catalog.md#4",
+        "support-runbook-errors.md#6",
+        "product-guide.md#1",
+        "support-runbook-errors.md#1",
+        "service-catalog.md#3"
+      ],
+      "found_by": {
+        "support-runbook-errors.md#8": {
+          "dense": 1,
+          "bm25": 1,
+          "graph": 6
+        },
+        "support-runbook-errors.md#7": {
+          "dense": 13,
+          "bm25": 4,
+          "graph": 5
+        },
+        "service-catalog.md#2": {
+          "dense": 20,
+          "bm25": 17,
+          "graph": 4
+        },
+        "product-guide.md#11": {
+          "dense": 2,
+          "bm25": 2
+        },
+        "support-runbook-errors.md#0": {
+          "dense": 3,
+          "bm25": 3
+        },
+        "service-catalog.md#4": {
+          "dense": 8,
+          "bm25": 7
+        },
+        "support-runbook-errors.md#6": {
+          "dense": 5,
+          "bm25": 11
+        },
+        "product-guide.md#1": {
+          "bm25": 15,
+          "graph": 3
+        },
+        "support-runbook-errors.md#1": {
+          "dense": 4,
+          "bm25": 14
+        },
+        "service-catalog.md#3": {
+          "dense": 12,
+          "graph": 8
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "support-runbook-errors.md#8",
+          "product-guide.md#11",
+          "support-runbook-errors.md#0",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#6",
+          "support-runbook-errors.md#5",
+          "support-runbook-errors.md#10",
+          "service-catalog.md#4",
+          "support-runbook-errors.md#3",
+          "support-runbook-errors.md#4"
+        ],
+        "bm25": [
+          "support-runbook-errors.md#8",
+          "product-guide.md#11",
+          "support-runbook-errors.md#0",
+          "support-runbook-errors.md#7",
+          "service-catalog.md#0",
+          "product-guide.md#8",
+          "service-catalog.md#4",
+          "service-catalog.md#1",
+          "product-guide.md#0",
+          "billing-policy-2026.md#5"
+        ],
+        "graph": [
+          "billing-policy-2026.md#0",
+          "billing-policy-2025.md#0",
+          "product-guide.md#1",
+          "service-catalog.md#2",
+          "support-runbook-errors.md#7",
+          "support-runbook-errors.md#8",
+          "product-guide.md#5",
+          "service-catalog.md#3"
+        ]
+      },
+      "retrieval_latency_ms": 635,
+      "retriever_timings_ms": {
+        "dense": 556,
+        "bm25": 6,
+        "graph": 1
+      },
+      "notes": [],
+      "evidence_ranks": [
+        1,
+        10
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.5,
+        "recall@3": 0.5,
+        "recall@5": 0.5,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          1,
+          null
+        ],
+        "bm25": [
+          1,
+          null
+        ],
+        "graph": [
+          6,
+          8
+        ]
+      },
+      "graph_relevant_chunks": [
+        "support-runbook-errors.md#8",
+        "service-catalog.md#3"
+      ],
+      "graph_relevant_in_fused_top5": [
+        "support-runbook-errors.md#8"
+      ]
+    },
+    {
+      "id": "q09",
+      "type": "not_in_corpus",
+      "question": "Is there a Kestrel mobile app for iPhone?",
+      "answerable": false,
+      "retrieved": [
+        "service-catalog.md#0",
+        "product-guide.md#0",
+        "product-guide.md#10",
+        "billing-policy-2025.md#0",
+        "product-guide.md#4",
+        "support-runbook-errors.md#0",
+        "product-guide.md#9",
+        "billing-policy-2026.md#0",
+        "product-guide.md#7",
+        "support-runbook-errors.md#8"
+      ],
+      "found_by": {
+        "service-catalog.md#0": {
+          "dense": 1,
+          "bm25": 1
+        },
+        "product-guide.md#0": {
+          "dense": 2,
+          "bm25": 3
+        },
+        "product-guide.md#10": {
+          "dense": 6,
+          "bm25": 5
+        },
+        "billing-policy-2025.md#0": {
+          "dense": 3,
+          "bm25": 9
+        },
+        "product-guide.md#4": {
+          "dense": 4,
+          "bm25": 12
+        },
+        "support-runbook-errors.md#0": {
+          "dense": 12,
+          "bm25": 4
+        },
+        "product-guide.md#9": {
+          "dense": 7,
+          "bm25": 10
+        },
+        "billing-policy-2026.md#0": {
+          "dense": 5,
+          "bm25": 15
+        },
+        "product-guide.md#7": {
+          "dense": 14,
+          "bm25": 6
+        },
+        "support-runbook-errors.md#8": {
+          "dense": 13,
+          "bm25": 7
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "service-catalog.md#0",
+          "product-guide.md#0",
+          "billing-policy-2025.md#0",
+          "product-guide.md#4",
+          "billing-policy-2026.md#0",
+          "product-guide.md#10",
+          "product-guide.md#9",
+          "billing-policy-2025.md#5",
+          "service-catalog.md#2",
+          "billing-policy-2026.md#7"
+        ],
+        "bm25": [
+          "service-catalog.md#0",
+          "support-runbook-errors.md#2",
+          "product-guide.md#0",
+          "support-runbook-errors.md#0",
+          "product-guide.md#10",
+          "product-guide.md#7",
+          "support-runbook-errors.md#8",
+          "billing-policy-2025.md#3",
+          "billing-policy-2025.md#0",
+          "product-guide.md#9"
+        ],
+        "graph": []
+      },
+      "retrieval_latency_ms": 537,
+      "retriever_timings_ms": {
+        "dense": 463,
+        "bm25": 5,
+        "graph": 1
+      },
+      "notes": [
+        "No usable entity of the graph was found in the question."
+      ]
+    },
+    {
+      "id": "q10",
+      "type": "not_in_corpus",
+      "question": "How much does one seat cost per month on the Business plan?",
+      "answerable": false,
+      "retrieved": [
+        "billing-policy-2025.md#0",
+        "billing-policy-2026.md#0",
+        "product-guide.md#1",
+        "billing-policy-2026.md#1",
+        "billing-policy-2026.md#3",
+        "billing-policy-2026.md#6",
+        "support-runbook-errors.md#6",
+        "billing-policy-2025.md#1",
+        "product-guide.md#2",
+        "product-guide.md#5"
+      ],
+      "found_by": {
+        "billing-policy-2025.md#0": {
+          "dense": 3,
+          "bm25": 1,
+          "graph": 2
+        },
+        "billing-policy-2026.md#0": {
+          "dense": 5,
+          "bm25": 2,
+          "graph": 1
+        },
+        "product-guide.md#1": {
+          "dense": 4,
+          "bm25": 6,
+          "graph": 3
+        },
+        "billing-policy-2026.md#1": {
+          "dense": 2,
+          "bm25": 4
+        },
+        "billing-policy-2026.md#3": {
+          "dense": 1,
+          "bm25": 17
+        },
+        "billing-policy-2026.md#6": {
+          "dense": 9,
+          "bm25": 9
+        },
+        "support-runbook-errors.md#6": {
+          "dense": 8,
+          "bm25": 11
+        },
+        "billing-policy-2025.md#1": {
+          "dense": 7,
+          "bm25": 14
+        },
+        "product-guide.md#2": {
+          "dense": 14,
+          "bm25": 8
+        },
+        "product-guide.md#5": {
+          "bm25": 20,
+          "graph": 4
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "billing-policy-2026.md#3",
+          "billing-policy-2026.md#1",
+          "billing-policy-2025.md#0",
+          "product-guide.md#1",
+          "billing-policy-2026.md#0",
+          "billing-policy-2025.md#2",
+          "billing-policy-2025.md#1",
+          "support-runbook-errors.md#6",
+          "billing-policy-2026.md#6",
+          "billing-policy-2025.md#5"
+        ],
+        "bm25": [
+          "billing-policy-2025.md#0",
+          "billing-policy-2026.md#0",
+          "product-guide.md#0",
+          "billing-policy-2026.md#1",
+          "product-guide.md#11",
+          "product-guide.md#1",
+          "service-catalog.md#0",
+          "product-guide.md#2",
+          "billing-policy-2026.md#6",
+          "support-runbook-errors.md#7"
+        ],
+        "graph": [
+          "billing-policy-2026.md#0",
+          "billing-policy-2025.md#0",
+          "product-guide.md#1",
+          "product-guide.md#5"
+        ]
+      },
+      "retrieval_latency_ms": 520,
+      "retriever_timings_ms": {
+        "dense": 445,
+        "bm25": 6,
+        "graph": 1
+      },
+      "notes": []
+    },
+    {
+      "id": "q11",
+      "type": "two_hop",
+      "question": "More than three customers see KST-6010 on the same day. Where should support post, and is that team on call around the clock?",
+      "answerable": true,
+      "retrieved": [
+        "support-runbook-errors.md#10",
+        "service-catalog.md#4",
+        "support-runbook-errors.md#1",
+        "support-runbook-errors.md#8",
+        "support-runbook-errors.md#6",
+        "billing-policy-2025.md#0",
+        "support-runbook-errors.md#0",
+        "support-runbook-errors.md#5",
+        "billing-policy-2026.md#0",
+        "service-catalog.md#3"
+      ],
+      "found_by": {
+        "support-runbook-errors.md#10": {
+          "dense": 7,
+          "bm25": 1,
+          "graph": 4
+        },
+        "service-catalog.md#4": {
+          "dense": 4,
+          "bm25": 7,
+          "graph": 7
+        },
+        "support-runbook-errors.md#1": {
+          "dense": 2,
+          "bm25": 2
+        },
+        "support-runbook-errors.md#8": {
+          "dense": 1,
+          "bm25": 4
+        },
+        "support-runbook-errors.md#6": {
+          "dense": 3,
+          "bm25": 6
+        },
+        "billing-policy-2025.md#0": {
+          "bm25": 9,
+          "graph": 2
+        },
+        "support-runbook-errors.md#0": {
+          "dense": 5,
+          "bm25": 8
+        },
+        "support-runbook-errors.md#5": {
+          "dense": 12,
+          "bm25": 3
+        },
+        "billing-policy-2026.md#0": {
+          "dense": 20,
+          "graph": 1
+        },
+        "service-catalog.md#3": {
+          "dense": 14,
+          "graph": 6
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "support-runbook-errors.md#8",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#6",
+          "service-catalog.md#4",
+          "support-runbook-errors.md#0",
+          "product-guide.md#11",
+          "support-runbook-errors.md#10",
+          "service-catalog.md#0",
+          "support-runbook-errors.md#4",
+          "support-runbook-errors.md#3"
+        ],
+        "bm25": [
+          "support-runbook-errors.md#10",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#5",
+          "support-runbook-errors.md#8",
+          "product-guide.md#8",
+          "support-runbook-errors.md#6",
+          "service-catalog.md#4",
+          "support-runbook-errors.md#0",
+          "billing-policy-2025.md#0",
+          "support-runbook-errors.md#7"
+        ],
+        "graph": [
+          "billing-policy-2026.md#0",
+          "billing-policy-2025.md#0",
+          "product-guide.md#1",
+          "support-runbook-errors.md#10",
+          "product-guide.md#5",
+          "service-catalog.md#3",
+          "service-catalog.md#4"
+        ]
+      },
+      "retrieval_latency_ms": 522,
+      "retriever_timings_ms": {
+        "dense": 451,
+        "bm25": 5,
+        "graph": 2
+      },
+      "notes": [],
+      "evidence_ranks": [
+        1,
+        2
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.5,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          7,
+          4
+        ],
+        "bm25": [
+          1,
+          7
+        ],
+        "graph": [
+          4,
+          7
+        ]
+      },
+      "graph_relevant_chunks": [
+        "support-runbook-errors.md#10",
+        "service-catalog.md#4"
+      ],
+      "graph_relevant_in_fused_top5": [
+        "support-runbook-errors.md#10",
+        "service-catalog.md#4"
+      ]
+    },
+    {
+      "id": "q12",
+      "type": "two_hop",
+      "question": "An old alert mentions mailman. Which team looks after that today, and which channel should support use?",
+      "answerable": true,
+      "retrieved": [
+        "service-catalog.md#2",
+        "support-runbook-errors.md#7",
+        "support-runbook-errors.md#8",
+        "service-catalog.md#3",
+        "service-catalog.md#4",
+        "support-runbook-errors.md#1",
+        "support-runbook-errors.md#0",
+        "service-catalog.md#0",
+        "product-guide.md#1",
+        "product-guide.md#5"
+      ],
+      "found_by": {
+        "service-catalog.md#2": {
+          "dense": 1,
+          "bm25": 1,
+          "graph": 3
+        },
+        "support-runbook-errors.md#7": {
+          "dense": 11,
+          "bm25": 4,
+          "graph": 8
+        },
+        "support-runbook-errors.md#8": {
+          "dense": 3,
+          "bm25": 15,
+          "graph": 6
+        },
+        "service-catalog.md#3": {
+          "dense": 8,
+          "bm25": 13,
+          "graph": 7
+        },
+        "service-catalog.md#4": {
+          "dense": 2,
+          "bm25": 2
+        },
+        "support-runbook-errors.md#1": {
+          "dense": 4,
+          "bm25": 3
+        },
+        "support-runbook-errors.md#0": {
+          "dense": 10,
+          "bm25": 5
+        },
+        "service-catalog.md#0": {
+          "dense": 7,
+          "bm25": 8
+        },
+        "product-guide.md#1": {
+          "bm25": 12,
+          "graph": 4
+        },
+        "product-guide.md#5": {
+          "dense": 13,
+          "graph": 5
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "service-catalog.md#2",
+          "service-catalog.md#4",
+          "support-runbook-errors.md#8",
+          "support-runbook-errors.md#1",
+          "product-guide.md#11",
+          "service-catalog.md#1",
+          "service-catalog.md#0",
+          "service-catalog.md#3",
+          "product-guide.md#9",
+          "support-runbook-errors.md#0"
+        ],
+        "bm25": [
+          "service-catalog.md#2",
+          "service-catalog.md#4",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#7",
+          "support-runbook-errors.md#0",
+          "billing-policy-2026.md#5",
+          "product-guide.md#3",
+          "service-catalog.md#0",
+          "support-runbook-errors.md#2",
+          "support-runbook-errors.md#6"
+        ],
+        "graph": [
+          "billing-policy-2026.md#0",
+          "billing-policy-2025.md#0",
+          "service-catalog.md#2",
+          "product-guide.md#1",
+          "product-guide.md#5",
+          "support-runbook-errors.md#8",
+          "service-catalog.md#3",
+          "support-runbook-errors.md#7"
+        ]
+      },
+      "retrieval_latency_ms": 614,
+      "retriever_timings_ms": {
+        "dense": 537,
+        "bm25": 5,
+        "graph": 1
+      },
+      "notes": [],
+      "evidence_ranks": [
+        1,
+        1,
+        4
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.6666666666666666,
+        "recall@3": 0.6666666666666666,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          1,
+          1,
+          8
+        ],
+        "bm25": [
+          1,
+          1,
+          null
+        ],
+        "graph": [
+          3,
+          3,
+          7
+        ]
+      },
+      "graph_relevant_chunks": [
+        "service-catalog.md#2",
+        "service-catalog.md#3"
+      ],
+      "graph_relevant_in_fused_top5": [
+        "service-catalog.md#2",
+        "service-catalog.md#3"
+      ]
+    },
+    {
+      "id": "q13",
+      "type": "two_hop",
+      "question": "KST-1012 keeps happening even though the customer uploaded the right identity provider metadata. Who should support escalate to, and in which channel?",
+      "answerable": true,
+      "retrieved": [
+        "support-runbook-errors.md#3",
+        "service-catalog.md#3",
+        "support-runbook-errors.md#1",
+        "support-runbook-errors.md#2",
+        "product-guide.md#5",
+        "support-runbook-errors.md#6",
+        "support-runbook-errors.md#8",
+        "support-runbook-errors.md#10",
+        "support-runbook-errors.md#0",
+        "support-runbook-errors.md#5"
+      ],
+      "found_by": {
+        "support-runbook-errors.md#3": {
+          "dense": 1,
+          "bm25": 1,
+          "graph": 2
+        },
+        "service-catalog.md#3": {
+          "dense": 13,
+          "bm25": 15,
+          "graph": 1
+        },
+        "support-runbook-errors.md#1": {
+          "dense": 2,
+          "bm25": 5
+        },
+        "support-runbook-errors.md#2": {
+          "dense": 6,
+          "bm25": 3
+        },
+        "product-guide.md#5": {
+          "dense": 9,
+          "bm25": 2
+        },
+        "support-runbook-errors.md#6": {
+          "dense": 4,
+          "bm25": 10
+        },
+        "support-runbook-errors.md#8": {
+          "dense": 3,
+          "bm25": 13
+        },
+        "support-runbook-errors.md#10": {
+          "dense": 8,
+          "bm25": 9
+        },
+        "support-runbook-errors.md#0": {
+          "dense": 10,
+          "bm25": 8
+        },
+        "support-runbook-errors.md#5": {
+          "dense": 5,
+          "bm25": 14
+        }
+      },
+      "per_retriever": {
+        "dense": [
+          "support-runbook-errors.md#3",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#8",
+          "support-runbook-errors.md#6",
+          "support-runbook-errors.md#5",
+          "support-runbook-errors.md#2",
+          "product-guide.md#11",
+          "support-runbook-errors.md#10",
+          "product-guide.md#5",
+          "support-runbook-errors.md#0"
+        ],
+        "bm25": [
+          "support-runbook-errors.md#3",
+          "product-guide.md#5",
+          "support-runbook-errors.md#2",
+          "service-catalog.md#4",
+          "support-runbook-errors.md#1",
+          "support-runbook-errors.md#4",
+          "service-catalog.md#1",
+          "support-runbook-errors.md#0",
+          "support-runbook-errors.md#10",
+          "support-runbook-errors.md#6"
+        ],
+        "graph": [
+          "service-catalog.md#3",
+          "support-runbook-errors.md#3"
+        ]
+      },
+      "retrieval_latency_ms": 639,
+      "retriever_timings_ms": {
+        "dense": 562,
+        "bm25": 7,
+        "graph": 1
+      },
+      "notes": [],
+      "evidence_ranks": [
+        1,
+        2
+      ],
+      "hit": {
+        "hit@1": 1,
+        "hit@3": 1,
+        "hit@5": 1,
+        "hit@10": 1
+      },
+      "recall": {
+        "recall@1": 0.5,
+        "recall@3": 1.0,
+        "recall@5": 1.0,
+        "recall@10": 1.0
+      },
+      "first_rank": 1,
+      "retriever_ranks": {
+        "dense": [
+          1,
+          null
+        ],
+        "bm25": [
+          1,
+          null
+        ],
+        "graph": [
+          2,
+          1
+        ]
+      },
+      "graph_relevant_chunks": [
+        "service-catalog.md#3",
+        "support-runbook-errors.md#3"
+      ],
+      "graph_relevant_in_fused_top5": [
+        "service-catalog.md#3",
+        "support-runbook-errors.md#3"
+      ]
+    }
+  ]
+}
