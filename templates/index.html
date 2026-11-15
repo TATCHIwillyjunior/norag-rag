@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#f4f7fb">
-<title>RAG Studio</title>
+<title>RAG Studio - V4 Final Release</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='studio.css') }}">
 <style>
 :root {
-  color-scheme: light;
   --ink: #17243b;
-  --muted: #718096;
-  --line: #e4eaf2;
-  --surface: #fff;
-  --canvas: #f4f7fb;
+  --muted: #6b7c96;
+  --line: #e2e8f0;
+  --surface: #ffffff;
+  --canvas: #f8fafc;
   --teal: #087f8c;
   --teal-dark: #07626d;
-  --blue: #4263eb;
-  --shadow: 0 16px 40px rgba(30, 48, 78, .07);
+  --blue: #3b82f6;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --rose: #ef4444;
 }
 * { box-sizing: border-box; }
 body {
@@ -26,229 +26,156 @@ body {
     radial-gradient(ellipse at 86% 0%, rgba(84, 150, 235, .10), transparent 34rem),
     var(--canvas);
   color: var(--ink);
-  font: 15px/1.55 "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+  font: 14px/1.55 "Segoe UI", Inter, system-ui, sans-serif;
 }
-a { color: inherit; }
+a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: wait; opacity: .65; }
-:focus-visible { outline: 3px solid rgba(66, 99, 235, .35); outline-offset: 2px; }
 
 .topbar {
-  position: sticky;
-  z-index: 5;
-  top: 0;
-  border-bottom: 1px solid rgba(224, 231, 240, .9);
-  background: rgba(255, 255, 255, .9);
-  backdrop-filter: blur(14px);
+  position: sticky; top: 0; z-index: 10;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, .95);
+  backdrop-filter: blur(12px);
 }
 .topbar-inner {
-  width: min(1180px, calc(100% - 40px));
-  min-height: 72px;
+  width: min(1200px, calc(100% - 40px));
+  height: 64px;
   margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  display: flex; align-items: center; justify-content: space-between;
 }
-.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand { display: flex; align-items: center; gap: 12px; }
 .brand-mark {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  background: linear-gradient(145deg, #0b8791, #4263eb);
-  color: white;
-  font-size: 19px;
-  font-weight: 800;
-  box-shadow: 0 7px 16px rgba(8, 127, 140, .22);
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, #087f8c, #3b82f6);
+  color: white; font-weight: 800; font-size: 18px;
+  display: grid; place-items: center;
 }
-.brand-name { font-size: 16px; font-weight: 750; letter-spacing: -.02em; }
-.brand-name small { display: block; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .13em; }
-.nav { display: flex; align-items: center; gap: 6px; }
+.brand-name { font-weight: 750; font-size: 15px; }
+.brand-name small { display: block; font-size: 10px; color: var(--muted); letter-spacing: .08em; }
+.nav { display: flex; gap: 6px; }
 .nav a {
-  padding: 9px 14px;
-  border-radius: 10px;
-  color: #66748a;
-  font-size: 14px;
-  font-weight: 650;
-  text-decoration: none;
-  transition: background .16s ease, color .16s ease;
+  padding: 8px 12px; border-radius: 8px; font-weight: 600; color: var(--muted);
+  transition: all .15s ease;
 }
 .nav a:hover, .nav a[aria-current="page"] { background: #edf7f8; color: var(--teal-dark); }
 
-.page-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 38px 0 72px; }
-.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin: 0 0 26px; }
-.eyebrow { margin: 0 0 8px; color: var(--teal); font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
-h1 { margin: 0; font-size: clamp(30px, 4vw, 42px); line-height: 1.12; letter-spacing: -.045em; }
-.hero-copy { max-width: 630px; margin: 10px 0 0; color: var(--muted); font-size: 16px; }
-.hero-chip {
-  flex: 0 0 auto;
-  padding: 8px 12px;
-  border: 1px solid #dce8f1;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .72);
-  color: #53647a;
-  font-size: 12px;
-  font-weight: 700;
-}
-.hero-chip span { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #20a67a; }
+.page-shell { width: min(1200px, calc(100% - 40px)); margin: 32px auto 60px; }
+.hero { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+.eyebrow { color: var(--teal); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; margin: 0 0 4px; }
+h1 { margin: 0; font-size: 32px; letter-spacing: -.03em; }
+.hero-copy { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
 
-.workspace-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr); gap: 18px; align-items: start; }
+.workspace-grid { display: flex; flex-direction: column; gap: 24px; }
 .card {
-  min-width: 0;
-  padding: 23px;
-  border: 1px solid rgba(224, 231, 240, .95);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  background: white; border: 1px solid var(--line); border-radius: 12px;
+  padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,.03);
 }
-.section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
-.section-heading h2, .ask-heading h2 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
-.section-heading p, .ask-heading p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
-.upload-button {
-  position: relative;
-  flex: 0 0 auto;
-  padding: 9px 13px;
-  overflow: hidden;
-  border: 1px solid #cfe7e9;
-  border-radius: 10px;
-  background: #effafb;
-  color: var(--teal-dark);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.upload-button:hover { background: #e3f5f6; }
-.upload-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.table-wrap { overflow-x: auto; }
-#docs { width: 100%; border-collapse: collapse; text-align: left; }
-#docs th { padding: 10px 9px; background: #f7f9fc; color: #718096; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-#docs th:first-child { border-radius: 9px 0 0 9px; }
-#docs th:last-child { border-radius: 0 9px 9px 0; }
-#docs td { padding: 11px 9px; border-bottom: 1px solid #edf1f6; color: #435169; font-size: 13px; }
-#docs tr:last-child td { border-bottom: 0; }
-#docs tr:hover td { background: #fbfcfe; }
-#docs td:nth-child(3), #docs td:nth-child(4) { color: #79869a; font-variant-numeric: tabular-nums; white-space: nowrap; }
-#docs input[type="checkbox"], .retriever-toggle input { width: 16px; height: 16px; accent-color: var(--teal); }
 
-.settings-card .section-heading { margin-bottom: 20px; }
-.control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.field { display: grid; gap: 6px; color: #59677c; font-size: 12px; font-weight: 700; }
-.field input, #question {
-  min-width: 0;
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #dfe6ef;
-  border-radius: 10px;
-  background: #fbfcfe;
-  color: var(--ink);
-  outline: none;
-  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+.ask-row { display: flex; gap: 10px; margin: 16px 0 8px; }
+.ask-input {
+  flex: 1; padding: 14px 18px; border: 1px solid var(--line); border-radius: 10px;
+  font-size: 15px; outline: none; transition: border-color .15s;
 }
-.field input:focus, #question:focus { border-color: #75bfc5; background: #fff; box-shadow: 0 0 0 3px rgba(8, 127, 140, .10); }
-.primary-button {
-  min-height: 42px;
-  padding: 10px 15px;
-  border: 0;
-  border-radius: 10px;
-  background: linear-gradient(110deg, var(--teal), #08768e);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 750;
-  box-shadow: 0 7px 14px rgba(8, 127, 140, .16);
-  transition: transform .16s ease, box-shadow .16s ease;
+.ask-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(8,127,140,.15); }
+.primary-btn {
+  padding: 12px 24px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, #087f8c, #3b82f6);
+  color: white; font-weight: 700; font-size: 14px; cursor: pointer;
 }
-.primary-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(8, 127, 140, .22); }
-#rebuildBtn { width: 100%; margin-top: 14px; }
-.muted { color: var(--muted); font-size: 12px; }
-#indexInfo, #graphInfo { margin: 12px 0 0; }
-.status-note { padding: 10px 12px; border-radius: 10px; background: #f6f8fb; }
-.topk-field { margin-top: 16px; }
-.retriever-title { margin: 18px 0 9px; color: #59677c; font-size: 12px; font-weight: 750; }
-.retriever-list { display: grid; gap: 8px; }
-.retriever-toggle {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 10px 11px;
-  border: 1px solid #e6ebf2;
-  border-radius: 10px;
-  background: #fff;
-  color: #394960;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.retriever-toggle:has(input:checked) { border-color: #b6dfe2; background: #f2fbfb; }
+.primary-btn:hover { opacity: .95; }
 
-.ask-card { grid-column: 1 / -1; padding: 26px; }
-.ask-heading { margin-bottom: 18px; }
-.ask-row { display: flex; gap: 10px; }
-#question { min-height: 48px; padding: 12px 15px; background: #fff; font-size: 15px; }
-#askBtn { min-width: 110px; }
-#busy { min-height: 20px; margin: 12px 0 0; }
-.err { color: #bd3545; font-size: 13px; font-weight: 650; }
-#error:empty, #busy:empty { display: none; }
-#result:empty { display: none; }
-#result {
-  margin-top: 22px;
-  padding-top: 22px;
-  border-top: 1px solid var(--line);
+.example-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center; }
+.example-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+.example-chip {
+  padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+  background: white; font-size: 12px; color: #475569; cursor: pointer; transition: all .15s;
 }
-#result > h2 { margin: 0 0 10px; font-size: 19px; }
-#result > p:not(.muted):not(.warn) { margin: 0; color: #33435a; font-size: 16px; line-height: 1.7; }
-.warn { padding: 10px 12px; border: 1px solid #f3dfb2; border-radius: 10px; background: #fff9eb; color: #8d5c06; font-size: 13px; }
-#result button {
-  margin: 5px 5px 0 0;
-  padding: 7px 10px;
-  border: 1px solid #dce5ef;
-  border-radius: 8px;
-  background: #f8fafc;
-  color: #42536b;
-  font-size: 12px;
-}
-#result button:hover { border-color: #b6dfe2; background: #effafb; }
-.box { margin: 16px 0; padding: 17px; border: 1px solid #dfe8f0; border-radius: 13px; background: #f8fafc; }
-.box strong { color: #25364e; }
-.box ul { padding-left: 20px; color: #516178; font-size: 13px; }
-.box li { margin: 5px 0; }
-pre { overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 14px; border: 1px solid #e5eaf1; border-radius: 11px; background: #f7f9fc; color: #3d4c61; font: 12px/1.6 "Cascadia Code", Consolas, monospace; }
-details { margin-top: 15px; }
-summary { color: var(--teal-dark); font-size: 13px; font-weight: 700; cursor: pointer; }
+.example-chip:hover { border-color: #94a3b8; background: #f1f5f9; color: #0f172a; }
 
-@media (max-width: 820px) {
-  .workspace-grid { grid-template-columns: 1fr; }
-  .ask-card { grid-column: auto; }
+.conversation-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f8fafc; border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 14px; margin-top: 12px; font-size: 13px;
 }
-@media (max-width: 560px) {
-  .topbar-inner, .page-shell { width: min(100% - 24px, 1180px); }
-  .topbar-inner { min-height: 64px; gap: 8px; }
-  .brand-mark { width: 35px; height: 35px; }
-  .brand-name small { font-size: 9px; }
-  .nav { gap: 0; }
-  .nav a { padding: 8px; font-size: 12px; }
-  .page-shell { padding-top: 28px; }
-  .hero { display: block; }
-  .hero-chip { display: inline-block; margin-top: 16px; }
-  .card, .ask-card { padding: 17px; }
-  .section-heading { flex-wrap: wrap; }
-  .ask-row { flex-direction: column; }
-  #askBtn { width: 100%; }
+.pill-btn {
+  padding: 5px 12px; border-radius: 6px; border: 1px solid var(--line);
+  background: white; font-size: 12px; font-weight: 600; cursor: pointer;
+  color: #334155; transition: all .15s;
 }
+.pill-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+.answer-card {
+  margin-top: 20px; padding: 22px; border: 1px solid #dce8f1;
+  border-radius: 12px; background: #ffffff; box-shadow: 0 6px 16px rgba(15,23,42,.04);
+}
+.answer-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.details-trace-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 6px; border: 1px solid #087f8c;
+  background: #edf7f8; color: #07626d; font-weight: 700; font-size: 12px;
+  cursor: pointer; transition: all .15s;
+}
+.details-trace-btn:hover { background: #087f8c; color: white; }
+
+.suggestions-box { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.suggestions-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.suggestion-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.suggestion-chip {
+  padding: 6px 12px; border-radius: 999px; border: 1px solid #bfdbfe;
+  background: #eff6ff; color: #1d4ed8; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+}
+.suggestion-chip:hover { background: #dbeafe; }
+
+.advanced-card {
+  border: 1px solid var(--line); border-radius: 12px; background: white;
+  padding: 16px 20px; margin-top: 10px;
+}
+.advanced-summary {
+  font-weight: 700; font-size: 14px; color: #334155; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.trace-modal {
+  display: none; position: fixed; inset: 0; z-index: 50;
+  background: rgba(15, 23, 42, .5); backdrop-filter: blur(4px);
+  justify-content: flex-end;
+}
+.trace-drawer {
+  width: min(680px, 100%); height: 100%; background: white;
+  overflow-y: auto; padding: 28px; box-shadow: -8px 0 24px rgba(0,0,0,.15);
+}
+
+.table-wrap { overflow-x: auto; margin-top: 10px; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; text-transform: uppercase; color: var(--muted); }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+.field input { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; }
+
+.box { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: #f8fafc; }
+.warn { padding: 10px 12px; border: 1px solid #fed7aa; border-radius: 8px; background: #fff7ed; color: #9a3412; font-size: 13px; margin: 8px 0; }
+.err { color: #dc2626; font-size: 13px; margin: 8px 0; font-weight: 600; }
+pre { overflow: auto; white-space: pre-wrap; padding: 12px; border-radius: 8px; background: #f1f5f9; font-size: 12px; font-family: monospace; }
 </style>
 </head>
 <body>
-<<<<<<< HEAD
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="/" aria-label="RAG Studio home">
-      <span class="brand-mark" aria-hidden="true">R</span>
-      <span class="brand-name">RAG Studio<small>V3 RETRIEVAL WORKSPACE</small></span>
+    <a class="brand" href="/">
+      <div class="brand-mark">R</div>
+      <div class="brand-name">RAG Studio<small>V4 FINAL OBSERVABLE RELEASE</small></div>
     </a>
-    <nav class="nav" aria-label="Main navigation">
-      <a href="/" aria-current="page">Ask</a>
+    <nav class="nav">
+      <a href="/" aria-current="page">Ask & Chat</a>
+      <a href="/explorer">Concept Explorer</a>
+      <a href="/metrics">Metrics</a>
+      <a href="/quarantine">Quarantine</a>
       <a href="/eval">Evaluation</a>
       <a href="/words">Words</a>
     </nav>
@@ -256,109 +183,111 @@ summary { color: var(--teal-dark); font-size: 13px; font-weight: 700; cursor: po
 </header>
 
 <main class="page-shell">
-  <section class="hero" aria-labelledby="page-title">
+  <section class="hero">
     <div>
-      <p class="eyebrow">Local knowledge workspace</p>
-      <h1 id="page-title">Ask your documents.</h1>
-      <p class="hero-copy">Search your selected sources with dense, lexical, and graph retrieval, then inspect exactly where the answer came from.</p>
+      <p class="eyebrow">Enterprise Local Knowledge Workspace</p>
+      <h1>Ask your documents.</h1>
+      <p class="hero-copy">Grounded answers from your company documentation with full observability and responsible AI protection.</p>
     </div>
-    <span class="hero-chip"><span aria-hidden="true"></span>Private, local-first retrieval</span>
   </section>
 
   <div class="workspace-grid">
-    <section class="card documents-card" aria-labelledby="documents-title">
-      <div class="section-heading">
-        <div>
-          <h2 id="documents-title">Your documents</h2>
-          <p>Choose sources for this question or add a Markdown/text file.</p>
-        </div>
-        <label class="upload-button" for="file">+ Add documents
-          <input type="file" id="file" accept=".md,.txt" multiple aria-label="Add Markdown or text documents">
+    <!-- Main Search & Conversation Area (Primary First-Time UX) -->
+    <section class="card">
+      <div class="ask-row">
+        <input id="question" class="ask-input" placeholder="Ask a question about your documents..." autocomplete="off">
+        <button class="primary-btn" id="askBtn">Ask Question</button>
+      </div>
+
+      <!-- Quick Example Prompt Chips for Non-Programmers -->
+      <div class="example-chips">
+        <span class="example-label">Examples:</span>
+        <button class="example-chip" onclick="askExample('What does error KST-2044 mean and how do I fix it?')">Error KST-2044 fix</button>
+        <button class="example-chip" onclick="askExample('What happens, step by step, when a customer card payment fails?')">Card payment failure steps</button>
+        <button class="example-chip" onclick="askExample('Can I get a refund on my annual plan 45 days after it renewed?')">Refund after 45 days renewal</button>
+        <button class="example-chip" onclick="askExample('Who introduces himself as a titular counsellor in the tavern?')">Crime & Punishment tavern scene</button>
+      </div>
+
+      <div class="conversation-bar">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer;">
+          <input type="checkbox" id="convMode" checked>
+          Conversation Mode (Multi-turn memory & follow-ups)
         </label>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span style="font-size:12px;color:var(--muted);" id="turnCount">New session</span>
+          <button class="pill-btn" onclick="resetSession()">↻ New Chat</button>
+        </div>
+      </div>
+
+      <p style="color:var(--muted);font-size:13px;margin:8px 0 0;" id="busy"></p>
+      <p class="err" id="error"></p>
+      <div id="result"></div>
+    </section>
+
+    <!-- Documents Selection Card -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h2 style="margin:0;font-size:17px;">Active Documents</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="pill-btn" onclick="toggleSelectAll()">Toggle Select All</button>
+          <label class="pill-btn" style="cursor:pointer;" for="file">+ Upload Document
+            <input type="file" id="file" accept=".md,.txt" multiple style="display:none;">
+          </label>
+        </div>
       </div>
       <div class="table-wrap">
         <table id="docs"></table>
       </div>
+      <div id="quarantineAlert" style="display:none;margin-top:12px;" class="warn"></div>
     </section>
 
-    <section class="card settings-card" aria-labelledby="settings-title">
-      <div class="section-heading">
-        <div>
-          <h2 id="settings-title">Retrieval setup</h2>
-          <p>Configure chunking and choose how to search.</p>
-        </div>
-      </div>
-      <div class="control-grid">
-        <label class="field" for="chunkSize">Chunk size
+    <!-- Collapsible Advanced Settings (Cleans up clutter for non-programmers) -->
+    <details class="advanced-card">
+      <summary class="advanced-summary">⚙️ Advanced Search & Index Controls</summary>
+      <div style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;">
+        <label class="field">Chunk size
           <input type="number" id="chunkSize" value="800" min="100" max="4000">
         </label>
-        <label class="field" for="overlap">Overlap (%)
+        <label class="field">Overlap (%)
           <input type="number" id="overlap" value="10" min="0" max="50">
         </label>
+        <label class="field">Results to retrieve (top-k)
+          <input type="number" id="topK" value="5" min="1" max="20">
+        </label>
       </div>
-      <button class="primary-button" id="rebuildBtn">Rebuild index</button>
-      <p class="muted status-note" id="indexInfo"></p>
-      <label class="field topk-field" for="topK">Results to retrieve (top-k)
-        <input type="number" id="topK" value="5" min="1" max="20">
-      </label>
-      <p class="retriever-title">Retrievers</p>
-      <div class="retriever-list">
-        <label class="retriever-toggle"><input type="checkbox" id="r-dense" checked> Dense embeddings</label>
-        <label class="retriever-toggle"><input type="checkbox" id="r-bm25" checked> BM25 keyword search</label>
-        <label class="retriever-toggle"><input type="checkbox" id="r-graph"> Concept graph <span class="muted">(Kestrel only)</span></label>
+
+      <div style="margin:14px 0 6px;font-size:12px;font-weight:700;text-transform:uppercase;color:var(--muted);">Active Retrievers</div>
+      <div style="display:flex;gap:18px;margin-bottom:12px;">
+        <label><input type="checkbox" id="r-dense" checked> Dense Embeddings</label>
+        <label><input type="checkbox" id="r-bm25" checked> BM25 Keyword Search</label>
+        <label><input type="checkbox" id="r-graph"> Concept Graph (Kestrel)</label>
       </div>
-      <p class="muted" id="graphInfo"></p>
-    </section>
-<h1>Ask your documents</h1>
-<p class="muted">Pick the documents to search, type a question, and read the answer with its sources.</p>
 
-<h2>1. Your documents</h2>
-<p>
-<label>Add documents (.md or .txt): <input type="file" id="file" accept=".md,.txt" multiple></label>
-</p>
-<table id="docs"></table>
-
-<h2>2. Your question</h2>
-<input id="question" style="width:75%" placeholder="For example: Which team handles billing errors?">
-<button id="askBtn">Ask</button>
-
-<details class="box">
-<summary>Advanced settings</summary>
-<p>Search methods:
-<label><input type="checkbox" id="r-dense" checked> by meaning</label>
-<label><input type="checkbox" id="r-bm25" checked> by exact words (BM25)</label>
-<label><input type="checkbox" id="r-graph"> by concepts (graph, Kestrel documents only)</label>
-</p>
-<p class="muted" id="graphInfo"></p>
-<p>Number of passages given to the AI <input type="number" id="topK" value="5" style="width:60px"></p>
-<p>
-Passage size (characters) <input type="number" id="chunkSize" value="800" style="width:80px">
-Overlap (%) <input type="number" id="overlap" value="10" style="width:60px">
-<button id="rebuildBtn">Re-read all documents with these values</button>
-</p>
-<p class="muted" id="indexInfo"></p>
-</details>
-
-    <section class="card ask-card" aria-labelledby="question-title">
-      <div class="ask-heading">
-        <h2 id="question-title">What would you like to know?</h2>
-        <p>Answers are grounded in the selected documents. Select a reference to inspect its source text.</p>
-      </div>
-      <div class="ask-row">
-        <input id="question" aria-label="Your question" placeholder="Ask a question about your selected documents..." autocomplete="off">
-        <button class="primary-button" id="askBtn">Ask question</button>
-      </div>
-      <p class="muted" id="busy" role="status" aria-live="polite"></p>
-      <p class="err" id="error" role="alert"></p>
-      <div id="result"></div>
-    </section>
+      <button class="pill-btn" style="padding:8px 16px;" id="rebuildBtn">Rebuild Indices</button>
+      <p style="font-size:12px;color:var(--muted);margin:8px 0 0;" id="indexInfo"></p>
+      <p style="font-size:12px;color:var(--muted);margin:4px 0 0;" id="graphInfo"></p>
+    </details>
   </div>
 </main>
+
+<!-- Trace Details Modal / Drawer -->
+<div class="trace-modal" id="traceModal" onclick="if(event.target===this)closeTrace()">
+  <div class="trace-drawer" id="traceDrawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 id="modal-trace-title" style="margin:0;font-size:20px;">Trace Details</h2>
+      <button onclick="closeTrace()" style="border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div id="modal-trace-body"></div>
+  </div>
+</div>
 
 <script>
 let docs = [];
 let selected = new Set();
 let openRef = "";
+let currentSessionId = localStorage.getItem("rag_session_id") || "";
+let turnNumber = 0;
+let lastResult = null;
 
 function el(tag, text, cls) {
   const e = document.createElement(tag);
@@ -384,9 +313,7 @@ async function api(path, options) {
     throw new Error("Network error.");
   }
   let data = {};
-  try {
-    data = await res.json();
-  } catch (e) {}
+  try { data = await res.json(); } catch (e) {}
   if (!res.ok) throw new Error(data.message || ("Error " + res.status));
   return data;
 }
@@ -394,11 +321,7 @@ async function api(path, options) {
 async function run(msg, fn) {
   showError("");
   setBusy(msg);
-  try {
-    await fn();
-  } catch (e) {
-    showError(e.message);
-  }
+  try { await fn(); } catch (e) { showError(e.message); }
   setBusy("");
 }
 
@@ -411,11 +334,36 @@ function foundByText(fb) {
   return Object.keys(fb).map(n => n + " #" + fb[n]).join(", ");
 }
 
+function resetSession() {
+  if (currentSessionId) {
+    fetch("/api/chat/" + encodeURIComponent(currentSessionId), { method: "DELETE" });
+  }
+  currentSessionId = "sess_" + Math.random().toString(36).substring(2, 9);
+  localStorage.setItem("rag_session_id", currentSessionId);
+  turnNumber = 0;
+  document.getElementById("turnCount").textContent = "New session";
+  document.getElementById("result").replaceChildren();
+}
+
+function askExample(q) {
+  document.getElementById("question").value = q;
+  document.getElementById("askBtn").click();
+}
+
+function toggleSelectAll() {
+  if (selected.size === docs.length) {
+    selected.clear();
+  } else {
+    selected = new Set(docs.map(d => d.name));
+  }
+  renderDocs();
+}
+
 function renderDocs() {
   const t = document.getElementById("docs");
   t.replaceChildren();
   const head = el("tr");
-  ["Search it", "Document", "Status", ""].forEach(h => head.appendChild(el("th", h)));
+  ["Use", "Name", "Size", "Chunks", ""].forEach(h => head.appendChild(el("th", h)));
   t.appendChild(head);
   docs.forEach(d => {
     const tr = el("tr");
@@ -427,11 +375,11 @@ function renderDocs() {
     c1.appendChild(cb);
     tr.appendChild(c1);
     tr.appendChild(el("td", d.name));
-    tr.appendChild(el("td", d.chunks === 0 ? "not ready" : "ready (" + d.chunks + " passages)"));
+    tr.appendChild(el("td", (d.size / 1024).toFixed(1) + " KB"));
+    tr.appendChild(el("td", d.chunks === 0 ? "not indexed" : String(d.chunks)));
     const c5 = el("td");
-    const del = el("button", "Remove");
+    const del = el("button", "Delete", "pill-btn");
     del.onclick = () => run("Deleting...", async () => {
-      if (!confirm("Remove " + d.name + "?")) return;
       await api("/api/docs/" + encodeURIComponent(d.name), { method: "DELETE" });
       await loadDocs(false);
     });
@@ -447,8 +395,8 @@ async function loadDocs(selectAll) {
   if (selectAll) selected = new Set(docs.map(d => d.name));
   else selected = new Set([...selected].filter(n => docs.some(d => d.name === n)));
   document.getElementById("indexInfo").textContent =
-    "Current index: " + data.settings.chunk_size + " characters, " + data.settings.overlap_percent +
-    "% overlap. Embedding model: " + data.model + ".";
+    "Index: " + data.settings.chunk_size + " chars, " + data.settings.overlap_percent +
+    "% overlap. Embedding: " + data.model + ".";
   renderDocs();
   return data.settings;
 }
@@ -457,14 +405,14 @@ async function loadGraphInfo() {
   try {
     const g = await api("/api/graph/stats");
     document.getElementById("graphInfo").textContent = g.stats
-      ? "Concept graph ready: " + g.stats.entities + " concepts, " + g.stats.relations + " links."
-      : "The concept graph is not built yet (see the README).";
+      ? "Concept Graph: " + g.stats.entities + " entities, " + g.stats.relations + " relations."
+      : "Concept Graph not built yet (run python graph_cli.py build).";
   } catch (e) {}
 }
 
 function chunkHeader(c) {
-  let s = c.id + " | " + c.doc + ", chunk " + c.position + ", characters " + c.start + "-" + c.end;
-  if (c.distance !== null && c.distance !== undefined) s += " | dense distance " + c.distance.toFixed(3);
+  let s = c.id + " | " + c.doc + ", chunk " + c.position;
+  if (c.distance !== null && c.distance !== undefined) s += " | dense dist " + c.distance.toFixed(3);
   if (c.rrf_score !== undefined) s += " | fused score " + c.rrf_score.toFixed(4);
   if (c.found_by) s += " | found by " + foundByText(c.found_by);
   return s;
@@ -472,62 +420,177 @@ function chunkHeader(c) {
 
 function renderPath(path) {
   const box = el("div", undefined, "box");
-  box.appendChild(el("strong", "Concept graph path"));
+  box.appendChild(el("strong", "Concept Graph Traversal"));
   const ents = path.entities.map(e => e.name + " (" + e.type + ")");
-  box.appendChild(el("p", "Entities found in the question: " + (ents.length ? ents.join(", ") : "none")));
-  if (path.ignored_generic && path.ignored_generic.length) {
-    box.appendChild(el("p", "Ignored because too generic: " + path.ignored_generic.join(", "), "muted"));
-  }
+  box.appendChild(el("p", "Entities found in question: " + (ents.length ? ents.join(", ") : "none")));
   if (path.edges.length) {
-    box.appendChild(el("p", "Edges followed:"));
+    box.appendChild(el("p", "Hops followed:"));
     const ul = el("ul");
     path.edges.forEach(e => ul.appendChild(el("li", "hop " + e.hop + ": " + e.edge + "  [from " + e.chunks.join(", ") + "]")));
     box.appendChild(ul);
-  }
-  if (path.chunks.length) {
-    box.appendChild(el("p", "Chunks reached: " + path.chunks.map(c => c.id + " (" + c.score + ")").join(", ")));
   }
   return box;
 }
 
 function renderResult(r) {
+  lastResult = r;
   const box = document.getElementById("result");
   box.replaceChildren();
-  box.appendChild(el("h2", r.status === "not_found" ? "No answer found in your documents" : "Answer"));
-  box.appendChild(el("p", r.answer));
-  r.warnings.forEach(w => box.appendChild(el("p", w, "warn")));
-  (r.retrieval.notes || []).forEach(w => box.appendChild(el("p", w, "warn")));
-  if (r.reference_details.length) {
-    const p = el("p", "Sources (click to read the passage): ");
+
+  const card = document.createElement("div");
+  card.className = "answer-card";
+
+  if (r.rewritten_query) {
+    const rew = el("div", "Rewritten standalone query: \"" + r.rewritten_query + "\"", "warn");
+    rew.style.background = "#f0fdf4";
+    rew.style.borderColor = "#bbf7d0";
+    rew.style.color = "#166534";
+    card.appendChild(rew);
+  }
+
+  if (r.pii_detected) {
+    const piiAlert = el("div", "Privacy Guardrail: Personal data detected and redacted before external LLM transmission.", "warn");
+    card.appendChild(piiAlert);
+  }
+
+  const ansP = el("p", r.answer);
+  ansP.style.fontSize = "16px";
+  ansP.style.lineHeight = "1.7";
+  ansP.style.color = "#1e293b";
+  ansP.style.margin = "0 0 12px";
+  card.appendChild(ansP);
+
+  (r.warnings || []).forEach(w => card.appendChild(el("p", w, "warn")));
+  (r.retrieval?.notes || []).forEach(w => card.appendChild(el("p", w, "warn")));
+
+  // References list
+  if (r.reference_details && r.reference_details.length) {
+    const p = el("div");
+    p.style.fontWeight = "600";
+    p.style.fontSize = "13px";
+    p.style.margin = "12px 0 6px";
+    p.textContent = "References: ";
     r.reference_details.forEach(ref => {
-      const b = el("button", ref.id + (Object.keys(ref.found_by).length ? "  (" + foundByText(ref.found_by) + ")" : ""));
+      const b = el("button", ref.id + (Object.keys(ref.found_by).length ? " (" + foundByText(ref.found_by) + ")" : ""), "pill-btn");
+      b.style.margin = "4px 4px 0 0";
       b.onclick = () => { openRef = openRef === ref.id ? "" : ref.id; renderResult(r); };
       p.appendChild(b);
     });
-    box.appendChild(p);
+    card.appendChild(p);
   }
-  const opened = r.chunks.find(c => c.id === openRef);
-  if (opened) box.appendChild(el("pre", chunkHeader(opened) + "\n\n" + opened.text));
-  if (r.retrieval.graph_path) box.appendChild(renderPath(r.retrieval.graph_path));
-  box.appendChild(el("p", "Answered in " + (r.total_ms / 1000).toFixed(1) + " s.", "muted"));
+
+  const opened = (r.chunks || []).find(c => c.id === openRef);
+  if (opened) card.appendChild(el("pre", chunkHeader(opened) + "\n\n" + opened.text));
+
+  if (r.retrieval?.graph_path) card.appendChild(renderPath(r.retrieval.graph_path));
+
+  // Footer with exact Slide 26 specification: Details ▸ trace 7f3a
+  const footer = document.createElement("div");
+  footer.className = "answer-footer";
+
+  const statusText = document.createElement("span");
+  statusText.style.fontSize = "12px";
+  statusText.style.color = "var(--muted)";
+  statusText.textContent = `${r.total_ms} ms · ${r.status === 'answered' ? 'Answered' : 'Abstained'}`;
+  footer.appendChild(statusText);
+
+  if (r.trace_id) {
+    const traceBtn = document.createElement("button");
+    traceBtn.className = "details-trace-btn";
+    traceBtn.innerHTML = `Details ▸ trace ${r.trace_id}`;
+    traceBtn.onclick = () => openTraceDrawer(r.trace);
+    footer.appendChild(traceBtn);
+  }
+  card.appendChild(footer);
+
+  // Suggested Next Questions
+  if (r.suggestions && r.suggestions.length) {
+    const sugBox = document.createElement("div");
+    sugBox.className = "suggestions-box";
+    sugBox.innerHTML = '<div class="suggestions-title">Suggested next questions:</div>';
+    const chips = document.createElement("div");
+    chips.className = "suggestion-chips";
+    r.suggestions.forEach(sug => {
+      const chip = document.createElement("button");
+      chip.className = "suggestion-chip";
+      chip.textContent = sug;
+      chip.onclick = () => {
+        document.getElementById("question").value = sug;
+        document.getElementById("askBtn").click();
+      };
+      chips.appendChild(chip);
+    });
+    sugBox.appendChild(chips);
+    card.appendChild(sugBox);
+  }
+
+  box.appendChild(card);
+
+  // Chunks collapsible details
   const details = el("details");
-  details.appendChild(el("summary", "Show all the passages the AI received (" + r.chunks.length + ")"));
-  r.chunks.forEach(c => details.appendChild(el("pre", chunkHeader(c) + "\n\n" + c.text)));
+  details.style.marginTop = "14px";
+  details.appendChild(el("summary", "Retrieved Chunks Evidence (" + (r.chunks || []).length + ")"));
+  (r.chunks || []).forEach(c => details.appendChild(el("pre", chunkHeader(c) + "\n\n" + c.text)));
   box.appendChild(details);
 }
 
+function openTraceDrawer(trace) {
+  if (!trace) return;
+  document.getElementById("modal-trace-title").textContent = "Trace " + trace.trace_id + " Details";
+  const b = document.getElementById("modal-trace-body");
+  b.innerHTML = `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:16px;">
+      <p style="margin:0 0 6px;"><strong>Status:</strong> ${trace.status} · <strong>Outcome:</strong> ${trace.outcome}</p>
+      <p style="margin:0 0 6px;"><strong>Total Latency:</strong> ${trace.duration_ms} ms</p>
+      <p style="margin:0 0 6px;"><strong>Tokens:</strong> In ${trace.attributes?.tokens_in || 0} / Out ${trace.attributes?.tokens_out || 0} (Total ${trace.attributes?.tokens_total || 0})</p>
+      <p style="margin:0;"><strong>Estimated Cost:</strong> $${(trace.attributes?.cost_usd || 0).toFixed(5)}</p>
+    </div>
+    <h3 style="font-size:15px;margin:16px 0 10px;">Execution Spans Tree</h3>
+  `;
+
+  (trace.spans || []).forEach(s => {
+    const div = document.createElement("div");
+    div.style.cssText = "border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;background:#ffffff;";
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-weight:700;">
+        <span>├─ ${s.name}</span>
+        <span>${s.duration_ms} ms</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">
+        ${s.attributes ? Object.entries(s.attributes).map(([k,v]) => `<strong>${k}</strong>: ${JSON.stringify(v)}`).join("<br>") : ""}
+      </div>
+    `;
+    b.appendChild(div);
+  });
+
+  document.getElementById("traceModal").style.display = "flex";
+}
+
+function closeTrace() {
+  document.getElementById("traceModal").style.display = "none";
+}
+
+// Ingestion upload with Responsible AI Quarantine check
 document.getElementById("file").onchange = (e) => {
   const files = Array.from(e.target.files);
   e.target.value = "";
-  run("Reading your documents... (the first time can take a minute)", async () => {
+  const alertBox = document.getElementById("quarantineAlert");
+  alertBox.style.display = "none";
+
+  run("Scanning and Indexing...", async () => {
     for (const f of files) {
       const content = await f.text();
       try {
-        await api("/api/docs", {
+        const res = await fetch("/api/docs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: f.name, content: content })
         });
+        const d = await res.json();
+        if (d.quarantined) {
+          alertBox.style.display = "block";
+          alertBox.innerHTML = `<strong>Quarantine Alert:</strong> File <code>${d.name}</code> was flagged for prompt injection/poisoning (Risk: ${d.risk_score}). It has been quarantined and was NOT indexed. <a href="/quarantine" style="text-decoration:underline;font-weight:700;">Review in Quarantine</a>`;
+        }
       } catch (err) {
         showError(f.name + ": " + err.message);
       }
@@ -536,7 +599,7 @@ document.getElementById("file").onchange = (e) => {
   });
 };
 
-document.getElementById("rebuildBtn").onclick = () => run("Reading all documents again...", async () => {
+document.getElementById("rebuildBtn").onclick = () => run("Rebuilding indices...", async () => {
   await api("/api/reindex", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -548,12 +611,14 @@ document.getElementById("rebuildBtn").onclick = () => run("Reading all documents
   await loadDocs(false);
 });
 
-document.getElementById("askBtn").onclick = () => run("Searching your documents and writing the answer...", async () => {
+document.getElementById("askBtn").onclick = () => run("Searching...", async () => {
   document.getElementById("result").replaceChildren();
   openRef = "";
-  if (document.getElementById("question").value.trim() === "") throw new Error("Type a question first.");
-  if (selected.size === 0) throw new Error("Tick at least one document.");
-  if (retrievers().length === 0) throw new Error("Tick at least one search method in Advanced settings.");
+  if (retrievers().length === 0) throw new Error("Switch on at least one retriever.");
+
+  const isConv = document.getElementById("convMode").checked;
+  if (!currentSessionId) resetSession();
+
   const r = await api("/api/ask", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -561,9 +626,15 @@ document.getElementById("askBtn").onclick = () => run("Searching your documents 
       question: document.getElementById("question").value,
       docs: Array.from(selected),
       top_k: Number(document.getElementById("topK").value),
-      retrievers: retrievers()
+      retrievers: retrievers(),
+      session_id: isConv ? currentSessionId : null
     })
   });
+
+  if (isConv) {
+    turnNumber++;
+    document.getElementById("turnCount").textContent = "Chat Turn #" + turnNumber;
+  }
   renderResult(r);
 });
 
@@ -571,13 +642,21 @@ document.getElementById("question").onkeydown = (e) => {
   if (e.key === "Enter") document.getElementById("askBtn").click();
 };
 
-run("Starting... (the first start can take a minute)", async () => {
+run("Initializing...", async () => {
+  if (!currentSessionId) resetSession();
   const s = await loadDocs(true);
   document.getElementById("chunkSize").value = s.chunk_size;
   document.getElementById("overlap").value = s.overlap_percent;
   await loadGraphInfo();
+
+  // Check URL query param ?q=
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get("q");
+  if (q) {
+    document.getElementById("question").value = q;
+    document.getElementById("askBtn").click();
+  }
 });
 </script>
-<p class="muted" style="margin-top:40px">For developers: <a href="/eval">Evaluation</a> | <a href="/words">Words</a></p>
 </body>
 </html>

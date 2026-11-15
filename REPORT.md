@@ -204,3 +204,66 @@ separately above.
   could not be assessed from this build.
 - The initial graph build hit an API 503, but the cached build resumed and
   completed with no failed chunks.
+
+## 6. RAG V4 Final Release: Observability, Features, and Responsible AI
+
+The V4 release expands V3 into a production-grade observable and responsible system:
+
+### 6.1 Observability & Tracing (Part A)
+- **Hierarchical Spans:** Every query generates a trace with discrete spans (`guardrail.pii`, `conversation.rewrite`, `retrieve.dense`, `retrieve.bm25`, `retrieve.graph`, `fuse.rrf`, `generate`, `conversation.suggest`).
+- **UI Trace Viewer:** Every answer includes a "🔍 Trace Details" drawer showing the execution breakdown, latency, tokens, cost, and retrieved chunk IDs.
+- **Metrics Dashboard (`/metrics`):** Displays real-time request counts, outcome distribution (answered, abstained, error), $p_{50}$ and $p_{95}$ latencies overall and by span, and token/cost aggregates.
+
+### 6.2 New Features (Part B)
+- **Concept Map Explorer (`/explorer`):** Interactive force-directed network view of the 47 nodes and 38 edges in the Kestrel concept graph. Features entity type filtering, concept search, neighbor traversal, source chunk provenance, and 1-click query launching.
+- **Conversation Mode (`/`):** Multi-turn conversational memory with LLM query rewriting for follow-up questions and automatic generation of 2–3 suggested next questions.
+
+### 6.3 Responsible AI Guardrails (Part C)
+- **Injection Scanner & Quarantine (`/quarantine`):** Ingestion guardrail detecting direct instruction overrides, jailbreaks, hidden HTML instructions, and markdown image exfiltration. Flags place documents into an isolated quarantine folder (`corpus/quarantine/`).
+- **PII Redaction Guardrail:** Masks emails, phone numbers, payment cards, IBANs and titled names in the question, the retrieved chunks and the conversation history before data leaves the local environment; the answer is restored locally.
+
+### 6.4 Cost & Latency Benchmark (V4 Pipeline)
+
+| Pipeline Step / Feature | Typ. Latency (p50) | In Tokens | Out Tokens | Cost per Action | Failure Handling |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **First Turn (Standard Ask)** | ~1,350 ms | ~1,800 | ~90 | ~$0.00016 | Abstains if no chunks; validates schema |
+| **Follow-up Turn (Conversation)** | ~2,100 ms | ~2,200 | ~150 | ~$0.00021 | Falls back to raw query if rewrite fails |
+| **Concept Map Inspection** | < 5 ms | 0 | 0 | $0.00000 | Serves from local index; node error fallback |
+| **Injection Scan (Ingestion)** | < 1 ms | 0 | 0 | $0.00000 | Quarantines file; notifies user |
+| **PII Redaction Guardrail** | < 1 ms | 0 | 0 | $0.00000 | Masks identifiers; records span |
+
+### 6.5 Guardrail Performance (held-out evaluation)
+
+The first 20-sample benchmark was written with the rules (100%). On a held-out set of 40 new
+samples written before any tuning (`python eval_guardrails.py --set heldout`):
+
+| Scanner | Attacks caught | False positives | Recall | Precision |
+|---|---|---|---|---|
+| V4 baseline | 1 / 20 | 1 / 20 | 5% | 50% |
+| V4.1 (tuned on the dev set only) | 19 / 20 | 0 / 20 | 95% | 100% |
+
+Remaining miss: a letter-spaced "I-g-n-o-r-e   a-l-l …". No real corpus file is flagged.
+V4.1 also redacts personal data in the retrieved chunks and the conversation history before
+Gemini, and the document deletion now purges the graph, its cache and the BM25 index, with a
+verification report. Details in [DECISION_LOG.md](./DECISION_LOG.md) §3.
+
+### 6.6 18-Minute Presentation Runbook (Team of 3)
+
+The team defense follows the course schedule (Slide 52: 4 min demo + 3x3 min individual talks + 5 min Q&A):
+
+1. **Live Demo (4 minutes):**
+   - *Query with Traces (1.5 min):* Ask *"What happens, step by step, when a customer payment fails?"*, show the grounded answer, citations, and click **`Details ▸ trace 7f3a`** to walk through the span tree (Dense + BM25 + RRF + Generate), latency, and costs.
+   - *Conversation Mode (1 min):* Ask a follow-up *"and what if the card is expired?"*, show the automatic query rewrite badge and the suggested next questions chips.
+   - *Concept Explorer (1 min):* Switch to `/explorer`, filter by `error_code`, click `KST-2044`, show its connected relations and source chunk quotes, and launch a query from the node.
+   - *Quarantine Ingestion (0.5 min):* Upload a test file with prompt injection, show the immediate quarantine warning, and open `/quarantine` to inspect and manage it.
+2. **Individual Presentations (3 minutes each):**
+   - **Willy (Observability & Architecture):** Design of the OpenTelemetry-aligned span hierarchy, local JSONL persistence, cost tracking formula, and the `/metrics` dashboard ($p_{50}$ / $p_{95}$ percentiles).
+   - **Fred (New Features & User Experience):** UX clean-up from V1–V3 clutter, Concept Map Explorer force-directed graph architecture, and Conversation Mode query rewriting.
+   - **Keylan (Responsible AI & Compliance):** Prompt injection / poisoning heuristics, the quarantine isolation workflow, PII redaction engine, and GDPR Article 17 document deletion lifecycle.
+3. **Q&A Preparation (5 minutes):**
+   - *Why local JSONL over Langfuse/Phoenix?* Data sovereignty, zero external latency overhead, and 100% offline grading reproducibility.
+   - *What happens when query rewriting fails?* Graceful fallback to the raw query; user never experiences a crash.
+   - *How do you prevent data exfiltration?* Ingestion scanner blocks markdown image links and scripts, and PII redactor scrubs emails/numbers before Gemini API transmission.
+
+Detailed architecture rationales and guardrail confusion matrices are documented in [DECISION_LOG.md](./DECISION_LOG.md).
+
