@@ -240,6 +240,7 @@ summary { color: var(--teal-dark); font-size: 13px; font-weight: 700; cursor: po
 </style>
 </head>
 <body>
+<<<<<<< HEAD
 <header class="topbar">
   <div class="topbar-inner">
     <a class="brand" href="/" aria-label="RAG Studio home">
@@ -308,6 +309,35 @@ summary { color: var(--teal-dark); font-size: 13px; font-weight: 700; cursor: po
       </div>
       <p class="muted" id="graphInfo"></p>
     </section>
+<h1>Ask your documents</h1>
+<p class="muted">Pick the documents to search, type a question, and read the answer with its sources.</p>
+
+<h2>1. Your documents</h2>
+<p>
+<label>Add documents (.md or .txt): <input type="file" id="file" accept=".md,.txt" multiple></label>
+</p>
+<table id="docs"></table>
+
+<h2>2. Your question</h2>
+<input id="question" style="width:75%" placeholder="For example: Which team handles billing errors?">
+<button id="askBtn">Ask</button>
+
+<details class="box">
+<summary>Advanced settings</summary>
+<p>Search methods:
+<label><input type="checkbox" id="r-dense" checked> by meaning</label>
+<label><input type="checkbox" id="r-bm25" checked> by exact words (BM25)</label>
+<label><input type="checkbox" id="r-graph"> by concepts (graph, Kestrel documents only)</label>
+</p>
+<p class="muted" id="graphInfo"></p>
+<p>Number of passages given to the AI <input type="number" id="topK" value="5" style="width:60px"></p>
+<p>
+Passage size (characters) <input type="number" id="chunkSize" value="800" style="width:80px">
+Overlap (%) <input type="number" id="overlap" value="10" style="width:60px">
+<button id="rebuildBtn">Re-read all documents with these values</button>
+</p>
+<p class="muted" id="indexInfo"></p>
+</details>
 
     <section class="card ask-card" aria-labelledby="question-title">
       <div class="ask-heading">
@@ -385,7 +415,7 @@ function renderDocs() {
   const t = document.getElementById("docs");
   t.replaceChildren();
   const head = el("tr");
-  ["Use", "Name", "Size (bytes)", "Chunks", ""].forEach(h => head.appendChild(el("th", h)));
+  ["Search it", "Document", "Status", ""].forEach(h => head.appendChild(el("th", h)));
   t.appendChild(head);
   docs.forEach(d => {
     const tr = el("tr");
@@ -397,11 +427,11 @@ function renderDocs() {
     c1.appendChild(cb);
     tr.appendChild(c1);
     tr.appendChild(el("td", d.name));
-    tr.appendChild(el("td", String(d.size)));
-    tr.appendChild(el("td", d.chunks === 0 ? "not indexed" : String(d.chunks)));
+    tr.appendChild(el("td", d.chunks === 0 ? "not ready" : "ready (" + d.chunks + " passages)"));
     const c5 = el("td");
-    const del = el("button", "Delete");
+    const del = el("button", "Remove");
     del.onclick = () => run("Deleting...", async () => {
+      if (!confirm("Remove " + d.name + "?")) return;
       await api("/api/docs/" + encodeURIComponent(d.name), { method: "DELETE" });
       await loadDocs(false);
     });
@@ -427,9 +457,8 @@ async function loadGraphInfo() {
   try {
     const g = await api("/api/graph/stats");
     document.getElementById("graphInfo").textContent = g.stats
-      ? "Graph: " + g.stats.entities + " entities, " + g.stats.relations + " relations (built with chunk size " +
-        g.stats.chunk_size + ", overlap " + g.stats.overlap_percent + "%)."
-      : "Graph not built yet (python graph_cli.py build).";
+      ? "Concept graph ready: " + g.stats.entities + " concepts, " + g.stats.relations + " links."
+      : "The concept graph is not built yet (see the README).";
   } catch (e) {}
 }
 
@@ -464,12 +493,12 @@ function renderPath(path) {
 function renderResult(r) {
   const box = document.getElementById("result");
   box.replaceChildren();
-  box.appendChild(el("h2", r.status === "not_found" ? "Answer (not found)" : "Answer"));
+  box.appendChild(el("h2", r.status === "not_found" ? "No answer found in your documents" : "Answer"));
   box.appendChild(el("p", r.answer));
   r.warnings.forEach(w => box.appendChild(el("p", w, "warn")));
   (r.retrieval.notes || []).forEach(w => box.appendChild(el("p", w, "warn")));
   if (r.reference_details.length) {
-    const p = el("p", "References: ");
+    const p = el("p", "Sources (click to read the passage): ");
     r.reference_details.forEach(ref => {
       const b = el("button", ref.id + (Object.keys(ref.found_by).length ? "  (" + foundByText(ref.found_by) + ")" : ""));
       b.onclick = () => { openRef = openRef === ref.id ? "" : ref.id; renderResult(r); };
@@ -480,12 +509,9 @@ function renderResult(r) {
   const opened = r.chunks.find(c => c.id === openRef);
   if (opened) box.appendChild(el("pre", chunkHeader(opened) + "\n\n" + opened.text));
   if (r.retrieval.graph_path) box.appendChild(renderPath(r.retrieval.graph_path));
-  let info = r.total_ms + " ms (retrievers: " + r.retrieval.retrievers.join("+") + "; " +
-    Object.keys(r.retrieval.timings_ms).map(n => n + " " + r.retrieval.timings_ms[n] + " ms").join(", ") + ")";
-  if (r.usage) info += ", tokens: input " + r.usage.input + ", output " + r.usage.output + ", total " + r.usage.total;
-  box.appendChild(el("p", info, "muted"));
+  box.appendChild(el("p", "Answered in " + (r.total_ms / 1000).toFixed(1) + " s.", "muted"));
   const details = el("details");
-  details.appendChild(el("summary", "Retrieved chunks (" + r.chunks.length + ")"));
+  details.appendChild(el("summary", "Show all the passages the AI received (" + r.chunks.length + ")"));
   r.chunks.forEach(c => details.appendChild(el("pre", chunkHeader(c) + "\n\n" + c.text)));
   box.appendChild(details);
 }
@@ -493,7 +519,7 @@ function renderResult(r) {
 document.getElementById("file").onchange = (e) => {
   const files = Array.from(e.target.files);
   e.target.value = "";
-  run("Indexing... (the first run loads the embedding model, it can take a minute)", async () => {
+  run("Reading your documents... (the first time can take a minute)", async () => {
     for (const f of files) {
       const content = await f.text();
       try {
@@ -510,7 +536,7 @@ document.getElementById("file").onchange = (e) => {
   });
 };
 
-document.getElementById("rebuildBtn").onclick = () => run("Rebuilding the index...", async () => {
+document.getElementById("rebuildBtn").onclick = () => run("Reading all documents again...", async () => {
   await api("/api/reindex", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -522,10 +548,12 @@ document.getElementById("rebuildBtn").onclick = () => run("Rebuilding the index.
   await loadDocs(false);
 });
 
-document.getElementById("askBtn").onclick = () => run("Searching...", async () => {
+document.getElementById("askBtn").onclick = () => run("Searching your documents and writing the answer...", async () => {
   document.getElementById("result").replaceChildren();
   openRef = "";
-  if (retrievers().length === 0) throw new Error("Switch on at least one retriever.");
+  if (document.getElementById("question").value.trim() === "") throw new Error("Type a question first.");
+  if (selected.size === 0) throw new Error("Tick at least one document.");
+  if (retrievers().length === 0) throw new Error("Tick at least one search method in Advanced settings.");
   const r = await api("/api/ask", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -543,12 +571,13 @@ document.getElementById("question").onkeydown = (e) => {
   if (e.key === "Enter") document.getElementById("askBtn").click();
 };
 
-run("Loading... (the first start loads the embedding model)", async () => {
+run("Starting... (the first start can take a minute)", async () => {
   const s = await loadDocs(true);
   document.getElementById("chunkSize").value = s.chunk_size;
   document.getElementById("overlap").value = s.overlap_percent;
   await loadGraphInfo();
 });
 </script>
+<p class="muted" style="margin-top:40px">For developers: <a href="/eval">Evaluation</a> | <a href="/words">Words</a></p>
 </body>
 </html>
