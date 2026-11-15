@@ -268,3 +268,4 @@ The team defense follows the course schedule (Slide 52: 4 min demo + 3x3 min ind
    - *How do you prevent data exfiltration?* Ingestion scanner blocks markdown image links and scripts, and PII redactor scrubs emails/numbers before Gemini API transmission.
 
 Detailed architecture rationales and guardrail confusion matrices are documented in [DECISION_LOG.md](./DECISION_LOG.md).
+
