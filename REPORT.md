@@ -220,7 +220,7 @@ The V4 release expands V3 into a production-grade observable and responsible sys
 
 ### 6.3 Responsible AI Guardrails (Part C)
 - **Injection Scanner & Quarantine (`/quarantine`):** Ingestion guardrail detecting direct instruction overrides, jailbreaks, hidden HTML instructions, and markdown image exfiltration. Flags place documents into an isolated quarantine folder (`corpus/quarantine/`).
-- **PII Redaction Guardrail:** Automatically masks emails, phone numbers, credit cards, and sensitive identifiers before data leaves the local environment.
+- **PII Redaction Guardrail:** Masks emails, phone numbers, payment cards, IBANs and titled names in the question, the retrieved chunks and the conversation history before data leaves the local environment; the answer is restored locally.
 
 ### 6.4 Cost & Latency Benchmark (V4 Pipeline)
 
@@ -232,22 +232,20 @@ The V4 release expands V3 into a production-grade observable and responsible sys
 | **Injection Scan (Ingestion)** | < 1 ms | 0 | 0 | $0.00000 | Quarantines file; notifies user |
 | **PII Redaction Guardrail** | < 1 ms | 0 | 0 | $0.00000 | Masks identifiers; records span |
 
-### 6.5 Guardrail Performance & Confusion Matrix
+### 6.5 Guardrail Performance (held-out evaluation)
 
-Evaluated on 20 realistic inputs (10 hostile attack payloads + 10 benign enterprise documents) in `eval_guardrails.py`:
+The first 20-sample benchmark was written with the rules (100%). On a held-out set of 40 new
+samples written before any tuning (`python eval_guardrails.py --set heldout`):
 
-```
-======================================================================
-CONFUSION MATRIX (OWASP LLM01/LLM05 Ingestion Classifier)
-======================================================================
-                       | Flagged (Suspicious)   | Not Flagged (Harmless)
-----------------------------------------------------------------------
-Really Hostile         | TP: 10                 | FN: 0                 
-Really Harmless        | FP: 0                  | TN: 10                
-======================================================================
-Accuracy: 100.0% | Precision: 100.0% | Recall: 100.0% | F1 Score: 1.0000
-Average Latency: 0.659 ms per document scan
-```
+| Scanner | Attacks caught | False positives | Recall | Precision |
+|---|---|---|---|---|
+| V4 baseline | 1 / 20 | 1 / 20 | 5% | 50% |
+| V4.1 (tuned on the dev set only) | 19 / 20 | 0 / 20 | 95% | 100% |
+
+Remaining miss: a letter-spaced "I-g-n-o-r-e   a-l-l …". No real corpus file is flagged.
+V4.1 also redacts personal data in the retrieved chunks and the conversation history before
+Gemini, and the document deletion now purges the graph, its cache and the BM25 index, with a
+verification report. Details in [DECISION_LOG.md](./DECISION_LOG.md) §3.
 
 ### 6.6 18-Minute Presentation Runbook (Team of 3)
 

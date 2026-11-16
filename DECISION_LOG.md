@@ -75,41 +75,77 @@ Metrics are calculated dynamically from `data/traces.jsonl`:
   - Flagged files are **isolated in `corpus/quarantine/`** and prevented from indexing into ChromaDB, BM25, or the Concept Graph.
   - Users can review, approve, or delete quarantined files via `/quarantine`.
 
-### 3.2 Guardrail Evaluation & Confusion Matrix
-Tested on a benchmark set of 20 realistic inputs (10 hostile attack vectors across prompt injection, memory erasure, tag injection, hidden HTML comments, zero-width steganography, markdown exfiltration, base64 payloads + 10 benign enterprise domain passages) evaluated in `eval_guardrails.py`:
+### 3.2 Guardrail Evaluation (V4.1: held-out set)
 
-```
-======================================================================
-CONFUSION MATRIX (OWASP LLM01/LLM05 Ingestion Classifier)
-======================================================================
-                       | Flagged (Suspicious)   | Not Flagged (Harmless)
-----------------------------------------------------------------------
-Really Hostile         | TP: 10                 | FN: 0                 
-Really Harmless        | FP: 0                  | TN: 10                
-======================================================================
-Accuracy:    100.0%
-Precision:   100.0%
-Recall:      100.0%
-Specificity: 100.0%
-F1 Score:    1.0000
-Avg Latency: 0.659 ms per scan
-```
+The first benchmark (20 samples, `python eval_guardrails.py`) was written together with the rules,
+so its 100% only shows that the rules match their own examples. On new text the baseline scanner
+caught **1 of 20** attacks.
 
-- **Accuracy:** $100\%$
-- **Precision:** $\frac{TP}{TP + FP} = \frac{10}{10 + 0} = 1.00$ ($100\%$)
-- **Recall:** $\frac{TP}{TP + FN} = \frac{10}{10 + 0} = 1.00$ ($100\%$)
-- **Cost & Latency:** 0 LLM calls at scan time (pattern & structure classifier), running in **$< 1\text{ ms}$** per document.
-- Benchmark data saved to [eval/results/guardrails_eval.json](./eval/results/guardrails_eval.json).
+V4.1 adds two sets in `eval/guardrails/`:
+
+- **`dev.jsonl`** (8 hostile, 6 harmless): used to tune the rules.
+- **`heldout.jsonl`** (20 hostile, 20 harmless): written **before** any rule change and never used for
+  tuning. It covers paraphrased overrides, text addressed to the AI reading the page, French, fake
+  `System:`/`Assistant:` turns, exfiltration links and HTML beacons, letter-spaced and leetspeak
+  obfuscation, hidden CSS text, comments, role-play, priority claims, secret requests and base64.
+  Harmless samples include traps: a security note that *quotes* an attack, "Admin can override…",
+  a benign HTML comment, a markdown image, a SHA-256, a JWT example, `display:flex`.
+
+Held-out results (`python eval_guardrails.py --set heldout`):
+
+| Scanner | Attacks caught (TP / 20) | False positives (FP / 20) | Recall | Precision |
+|---|---|---|---|---|
+| V4 baseline | 1 | 1 | 5% | 50% |
+| V4.1 | 19 | 0 | 95% | 100% |
+
+Files: `eval/results/guardrails_eval_heldout_baseline.json`, `eval/results/guardrails_eval_heldout.json`.
+
+What changed: rules target the intent (override verb + "what you were told", text addressed to the
+model, priority claims, URL templates carrying conversation data, hidden CSS text) instead of one
+wording; a second pass runs on a de-obfuscated copy (zero-width chars removed, `i g n o r e` joined,
+leetspeak mapped); padded base64 is decoded and scanned with the same rules; a quoted example
+introduced by "such as", "attackers write"… is logged as a *mention* and does not quarantine.
+No file of the real corpus (Kestrel docs, the novel, the espresso manual) is flagged
+(`tests/test_v4_guardrails_heldout.py`). Still 0 LLM calls, under 1 ms per document.
+
+Limits:
+- Remaining miss: `I-g-n-o-r-e   a-l-l   p-r-e-v-i-o-u-s …` (letters spaced, words separated by
+  several spaces). Left as is so the held-out score stays honest.
+- We wrote the held-out set ourselves, knowing the attack families: it is not an independent
+  red-team test. A pattern scanner cannot catch every rewording; an LLM or classifier-based
+  detector would catch more at a cost per document.
 
 ### 3.3 Personal Data Redaction (PII Guardrail)
-- Automatically masks emails (`[REDACTED_EMAIL_1]`), phone numbers (`[REDACTED_PHONE_1]`), credit cards (`[REDACTED_CARD_1]`), government/national IDs (`[REDACTED_ID_1]`), and formal personal names.
-- **Data Minimization:** Text is sanitized **before** prompt dispatch to Google Gemini API and **before** writing to local trace files (`data/traces.jsonl`).
-- **Reversibility:** Retains consistent entity mapping and supports local reverse unredaction (`unredact_pii`) for verified local answers.
+- Masks emails (`[REDACTED_EMAIL_1]`), phone numbers, payment cards, IBANs, national IDs and names
+  that follow a title (`Dr.`, `Mrs.`, `M.`, `Mme`…).
+- Phones are matched in real formats only: international `+CC …`, French `0X XX XX XX XX`,
+  North American `(555) 019-2834`. Before V4.1, any digit group of 8–15 digits counted, so an
+  invoice number was masked while `01 23 45 67 89` was not.
+- **What is redacted before Gemini (V4.1):**
+  - the question;
+  - the **retrieved chunks** (before V4.1 they were sent unredacted);
+  - the conversation history used for query rewriting (before V4.1 the *raw* previous questions
+    were sent back);
+  - the answer sent to generate suggestions.
+- The question and the chunks share **one placeholder map**, so the model can still answer
+  "write to [REDACTED_EMAIL_1]"; the answer is un-redacted locally before it is shown.
+- Traces only store redaction counts per kind, never the values.
+- Limit: names without a title ("Inès Moreau") are not redacted. In this corpus they are staff
+  contacts that answers need; redacting every capitalised pair would also hit team names.
 
 ### 3.4 GDPR Compliance & Document Purge Lifecycle (Article 17)
-Following the 11-store lifecycle from course Session 5 (Slide 30):
-When a document is deleted via `DELETE /api/docs/<name>`:
-1. File is deleted from disk (`corpus/<name>`).
-2. Chunks are deleted from ChromaDB persistent vector store (`collection.delete(where={"doc": name})`).
-3. Chunks are evicted from BM25 index and concept graph mappings.
-4. Verified via `verify_document_purge(name)`: ensures complete removal from disk, ChromaDB, and BM25 index, and guarantees that questions only answerable by that document correctly **abstain** (`status: not_found`).
+`DELETE /api/docs/<name>` runs `responsible.purge_document(name)`:
+
+1. Deletes the file from `corpus/` and its chunks from ChromaDB.
+2. Rebuilds the BM25 index file `data/bm25_index.json` (its fingerprint changed).
+3. Removes the document's chunks from every concept-graph node and edge in `data/graph.json`;
+   a node or edge with no chunk left is dropped. Shared nodes keep their other sources.
+4. Removes the document's rows from the graph extraction cache `data/graph_extractions.jsonl`.
+5. Drops conversation turns whose answer cites the document.
+6. Runs `verify_document_purge(name)`, which checks each store above, and returns the report in the
+   API response (`purge.is_fully_purged`).
+
+Before V4.1, only step 1 was implemented: the graph, its cache and the BM25 index file kept the
+document, and the verification function existed but was never called.
+Traces keep chunk IDs (document name + position) but no text. Tested in
+`tests/test_v4_gdpr_purge.py` on temporary files.

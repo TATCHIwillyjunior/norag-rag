@@ -125,6 +125,13 @@ python eval_guardrails.py
 
 This runs the 20-sample hostile vs. harmless evaluation, prints the confusion matrix, and outputs metrics to `eval/results/guardrails_eval.json`.
 
+The held-out set (40 samples written before tuning, never tuned on) and the dev set:
+
+```powershell
+python eval_guardrails.py --set heldout   # -> eval/results/guardrails_eval_heldout.json
+python eval_guardrails.py --set dev
+```
+
 ### Run the retrieval evaluations
 
 The minimum configurations are:
