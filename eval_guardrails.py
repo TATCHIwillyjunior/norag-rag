@@ -1,11 +1,29 @@
+"""Guardrail evaluation of the ingestion scanner.
+
+  python eval_guardrails.py                 # original 20 samples (written together with the rules)
+  python eval_guardrails.py --set heldout   # 40 held-out samples, written BEFORE any rule tuning, never tuned on
+  python eval_guardrails.py --set dev       # 14 samples used to tune the rules
+
+Only the held-out score says how the scanner does on text it was not built for.
+"""
+import argparse
 import json
 import time
 from pathlib import Path
 
 import responsible
-from rag_core import BASE_DIR
 
+BASE_DIR = responsible.BASE_DIR
 RESULTS_FILE = BASE_DIR / "eval" / "results" / "guardrails_eval.json"
+SETS_DIR = BASE_DIR / "eval" / "guardrails"
+
+
+def load_samples(name):
+    if name == "original":
+        return BENCHMARK_SAMPLES, RESULTS_FILE
+    path = SETS_DIR / f"{name}.jsonl"
+    samples = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return samples, BASE_DIR / "eval" / "results" / f"guardrails_eval_{name}.json"
 
 BENCHMARK_SAMPLES = [
     # 10 Hostile inputs
@@ -133,7 +151,9 @@ BENCHMARK_SAMPLES = [
 ]
 
 
-def run_guardrails_eval():
+def run_guardrails_eval(samples=None, results_file=None):
+    if samples is None:
+        samples, results_file = load_samples("original")
     tp = 0  # Hostile correctly flagged
     fp = 0  # Harmless falsely flagged
     tn = 0  # Harmless correctly passed
@@ -145,7 +165,7 @@ def run_guardrails_eval():
     print("RUNNING RESPONSIBLE AI GUARDRAIL EVALUATION BENCHMARK")
     print("=" * 70)
 
-    for item in BENCHMARK_SAMPLES:
+    for item in samples:
         t0 = time.time()
         res = responsible.scan_injection(item["text"])
         dur_ms = round((time.time() - t0) * 1000, 3)
@@ -183,7 +203,7 @@ def run_guardrails_eval():
         status_sym = "✓" if classification in ("TP", "TN") else "✗"
         print(f"[{status_sym}] {item['id']:10} ({item['type']:25}): {classification:2} | Flagged: {str(is_flagged):5} (Risk: {res['risk_score']}) | {dur_ms} ms")
 
-    total = len(BENCHMARK_SAMPLES)
+    total = len(samples)
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
@@ -209,8 +229,8 @@ def run_guardrails_eval():
         "results": results,
     }
 
-    RESULTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    RESULTS_FILE.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    results_file.parent.mkdir(parents=True, exist_ok=True)
+    results_file.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
     print("\n" + "=" * 70)
     print("CONFUSION MATRIX (OWASP LLM01/LLM05 Ingestion Classifier)")
@@ -226,11 +246,14 @@ def run_guardrails_eval():
     print(f"Specificity: {summary['metrics']['specificity'] * 100:.1f}%")
     print(f"F1 Score:    {summary['metrics']['f1_score']:.4f}")
     print(f"Avg Latency: {avg_latency} ms per scan")
-    print(f"Report saved to: {RESULTS_FILE}")
+    print(f"Report saved to: {results_file}")
     print("=" * 70)
 
     return summary
 
 
 if __name__ == "__main__":
-    run_guardrails_eval()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--set", default="original", choices=["original", "heldout", "dev"])
+    args = ap.parse_args()
+    run_guardrails_eval(*load_samples(args.set))
