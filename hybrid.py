@@ -188,7 +188,15 @@ def ask_hybrid(
         gen_cm = trace.span("generate")
         gen_span = gen_cm.__enter__()
         try:
-            out = rag_core.ask(standalone_query, docs, top_k, chunks=result["chunks"])
+            # PII guardrail on the context too: the question and the retrieved chunks are redacted
+            # together (shared placeholders) before they leave the machine, and the answer is
+            # un-redacted locally. Retrieval itself ran on local data and is not affected.
+            texts, ctx_pii = responsible.redact_many([standalone_query] + [c["text"] for c in result["chunks"]])
+            llm_chunks = [dict(c, text=t) for c, t in zip(result["chunks"], texts[1:])]
+            out = rag_core.ask(texts[0], docs, top_k, chunks=llm_chunks)
+            if ctx_pii["pii_detected"]:
+                out["answer"] = responsible.unredact_pii(out.get("answer", ""), ctx_pii["reverse_map"])
+            gen_span.set_attribute("context_redactions", ctx_pii["details"])
             gen_span.set_attribute("model", rag_core.LLM_MODEL)
             gen_span.set_attribute("status", out.get("status"))
             if out.get("usage"):
@@ -218,7 +226,8 @@ def ask_hybrid(
         # Step 6: Conversation Mode Suggested Next Questions
         suggestions = []
         if with_suggestions and out.get("status") == "answered":
-            suggestions = conversation.suggest_next_questions(standalone_query, out.get("answer", ""), trace=trace)
+            suggestions = conversation.suggest_next_questions(
+                standalone_query, responsible.redact_pii(out.get("answer", ""), preserve_map=False)[0], trace=trace)
 
         # Step 7: Outcome determination (answered vs abstained vs invalid)
         if out.get("status") == "answered":

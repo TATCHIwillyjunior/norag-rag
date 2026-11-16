@@ -279,59 +279,80 @@ def delete_quarantine(filename: str) -> dict[str, Any]:
 
 # ---------------- 3. PERSONAL DATA REDACTION (PII GUARDRAIL) ----------------
 
-EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b")
-PHONE_PATTERN = re.compile(r"(?:\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}\b")
+EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,7}\b")
+# Phone numbers in real formats only (V4.1): international "+CC ...", French "0X XX XX XX XX",
+# North American "(555) 019-2834" / "555-019-2834". Plain digit groups such as invoice or order
+# numbers ("2026 0001 2345") are no longer taken for phone numbers.
+PHONE_PATTERN = re.compile(
+    r"(?<![\w+])(?:"
+    r"\+\d{1,3}(?:[\s.\-]?\(?\d{1,4}\)?){2,5}"                     # +33 6 12 34 56 78, +1-555-019-2834
+    r"|0[1-9](?:[\s.\-]?\d{2}){4}"                                  # 01 23 45 67 89, 06.12.34.56.78
+    r"|\(\d{3}\)\s?\d{3}[\s.\-]\d{4}"                                # (555) 019-2834
+    r"|\d{3}-\d{3}-\d{4}"                                           # 555-019-2834
+    r")(?![\w])"
+)
 CREDIT_CARD_PATTERN = re.compile(r"\b(?:\d{4}[-\s]?){3}\d{4}\b")
 SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
-NAME_TITLE_PATTERN = re.compile(r"\b(?:Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b")
+IBAN_PATTERN = re.compile(r"\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){3,7}(?:\s?[A-Z0-9]{1,3})?\b")
+NAME_TITLE_PATTERN = re.compile(r"\b(?:Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.|M\.|Mme)\s+[A-Z][a-zà-ÿ]+(?:\s+[A-Z][a-zà-ÿ]+)?\b")
+
+_PII_KINDS = [  # order matters: cards and IBANs before phones, so their digits are not split
+    (EMAIL_PATTERN, "REDACTED_EMAIL", "emails"),
+    (IBAN_PATTERN, "REDACTED_IBAN", "ibans"),
+    (CREDIT_CARD_PATTERN, "REDACTED_CARD", "cards"),
+    (SSN_PATTERN, "REDACTED_ID", "ssns"),
+    (PHONE_PATTERN, "REDACTED_PHONE", "phones"),
+    (NAME_TITLE_PATTERN, "REDACTED_NAME", "names"),
+]
 
 
-def redact_pii(text: str, preserve_map: bool = True) -> tuple[str, dict[str, Any]]:
+def _new_pii_state() -> dict[str, Any]:
+    return {"counts": {kind: 0 for _, _, kind in _PII_KINDS}, "mapping": {}, "reverse_map": {}}
+
+
+def _redact_with(text: str, state: dict[str, Any]) -> str:
+    """Redact one text, sharing placeholders across texts: the same value gets the same placeholder."""
     redacted = text
-    counts = {"emails": 0, "phones": 0, "cards": 0, "ssns": 0, "names": 0}
-    mapping: dict[str, str] = {}
-    reverse_map: dict[str, str] = {}
-
-    # Helper to substitute and record mapping
-    def replace_entity(pattern, label, count_key):
-        nonlocal redacted
-        matches = list(dict.fromkeys(pattern.findall(redacted)))
-        for idx, match in enumerate(matches, 1):
-            if count_key == "phones":
+    for pattern, label, kind in _PII_KINDS:
+        for match in dict.fromkeys(m.group(0) for m in pattern.finditer(redacted)):
+            if match.startswith("[REDACTED_"):
+                continue
+            if kind == "phones":
                 digits = re.sub(r"\D", "", match)
                 if len(digits) < 8 or len(digits) > 15:
                     continue
+            if match not in state["mapping"]:
+                state["counts"][kind] += 1
+                placeholder = f"[{label}_{state['counts'][kind]}]"
+                state["mapping"][match] = placeholder
+                state["reverse_map"][placeholder] = match
+            redacted = redacted.replace(match, state["mapping"][match])
+    return redacted
 
-            counts[count_key] += 1
-            placeholder = f"[{label}_{idx}]"
-            mapping[match] = placeholder
-            reverse_map[placeholder] = match
-            redacted = redacted.replace(match, placeholder)
 
-    # 1. Emails
-    replace_entity(EMAIL_PATTERN, "REDACTED_EMAIL", "emails")
-
-    # 2. Credit Cards
-    replace_entity(CREDIT_CARD_PATTERN, "REDACTED_CARD", "cards")
-
-    # 3. SSNs / National IDs
-    replace_entity(SSN_PATTERN, "REDACTED_ID", "ssns")
-
-    # 4. Phone numbers
-    replace_entity(PHONE_PATTERN, "REDACTED_PHONE", "phones")
-
-    # 5. Formal name titles
-    replace_entity(NAME_TITLE_PATTERN, "REDACTED_NAME", "names")
-
-    total_redactions = sum(counts.values())
-    meta = {
-        "pii_detected": total_redactions > 0,
-        "total_redactions": total_redactions,
-        "details": counts,
-        "mapping": mapping if preserve_map else {},
-        "reverse_map": reverse_map if preserve_map else {},
+def _pii_meta(state: dict[str, Any], preserve_map: bool) -> dict[str, Any]:
+    total = sum(state["counts"].values())
+    return {
+        "pii_detected": total > 0,
+        "total_redactions": total,
+        "details": dict(state["counts"]),
+        "mapping": state["mapping"] if preserve_map else {},
+        "reverse_map": state["reverse_map"] if preserve_map else {},
     }
-    return redacted, meta
+
+
+def redact_pii(text: str, preserve_map: bool = True) -> tuple[str, dict[str, Any]]:
+    state = _new_pii_state()
+    redacted = _redact_with(text, state)
+    return redacted, _pii_meta(state, preserve_map)
+
+
+def redact_many(texts: list[str]) -> tuple[list[str], dict[str, Any]]:
+    """Redact the question and the retrieved chunks together, with one shared placeholder map,
+    so the model can still link "[REDACTED_EMAIL_1]" in the question to the same value in a chunk."""
+    state = _new_pii_state()
+    out = [_redact_with(t, state) for t in texts]
+    return out, _pii_meta(state, True)
 
 
 def unredact_pii(text: str, reverse_map: dict[str, str]) -> str:

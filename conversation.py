@@ -48,9 +48,12 @@ class ConversationSession:
         if not recent:
             return ""
         lines = []
+        # This history is sent to the LLM for query rewriting: redact personal data first.
+        from responsible import redact_pii
+
         for t in recent:
-            lines.append(f"User: {t['user_question']}")
-            lines.append(f"Assistant: {t['answer'][:300]}")
+            lines.append(f"User: {redact_pii(t['user_question'], preserve_map=False)[0]}")
+            lines.append(f"Assistant: {redact_pii(t['answer'][:300], preserve_map=False)[0]}")
         return "\n".join(lines)
 
     def to_dict(self) -> dict[str, Any]:
