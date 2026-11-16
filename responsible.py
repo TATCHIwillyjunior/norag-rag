@@ -4,6 +4,7 @@ import os
 import re
 import shutil
 import time
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -15,54 +16,140 @@ QUARANTINE_DIR = BASE_DIR / "corpus" / "quarantine"
 
 # ---------------- 1. PROMPT INJECTION & POISONING SCANNER (INGESTION GUARDRAIL) ----------------
 
-# Comprehensive regex patterns for OWASP LLM01 (Prompt Injection) & LLM05 (Document Poisoning)
+# Regex patterns for OWASP LLM01 (Prompt Injection) & LLM05 (Document Poisoning).
+# V4.1 (Keylan): patterns are written for the *intent* (override, address the model, exfiltrate,
+# hide text), not for one wording. Tuned on eval/guardrails/dev.jsonl only; the held-out set
+# eval/guardrails/heldout.jsonl is never used for tuning.
+_OVERRIDE_VERB = r"(?:ignore|disregard|forget|set\s+aside|override|bypass|skip|drop)"
+_PRIOR_TARGET = (
+    r"(?:(?:all\s+|any\s+|the\s+|your\s+)?(?:previous|prior|above|earlier|preceding|original)\s+"
+    r"(?:instructions?|prompts?|rules|commands|directives|guidelines|context)"
+    r"|everything\s+(?:you\s+were|you've\s+been|that\s+was)\s+told"
+    r"|(?:your|the)\s+(?:system\s+prompt|rules|instructions|guidelines|safety\s+(?:rules|filters)))"
+)
+_AI = r"(?:ai|a\.i\.|assistant|chatbot|llm|language\s+model|ai\s+model|model|gpt)"
+
 INJECTION_PATTERNS = [
-    # Direct instruction overrides
-    (r"(?i)\bignore\s+(all\s+)?(previous|prior|above)\s+(instructions|prompts|rules|commands|directives)\b", "Instruction override attempt (ignore previous instructions)"),
-    (r"(?i)\bdisregard\s+(all\s+)?(previous|prior|above)\s+(instructions|guidelines|context|rules)\b", "Instruction disregard attempt"),
-    (r"(?i)\bforget\s+(all\s+)?(previous|prior|above)\s+(prompts|instructions|rules)\b", "Instruction memory erasure directive"),
+    # Direct instruction overrides (English)
+    (rf"(?i)\b{_OVERRIDE_VERB}\s+{_PRIOR_TARGET}", "Instruction override attempt (ignore previous instructions)"),
     (r"(?i)\bdo\s+not\s+follow\s+(the\s+)?(system\s+prompt|guidelines|instructions)\b", "System prompt bypass instruction"),
-    (r"(?i)\b(system\s*override|admin\s*override|sudo\s+mode|root\s+access)\b", "Administrative / System override directive"),
+    (r"(?i)\b(?:the\s+)?(?:rules|instructions)\s+(?:above|before\s+this)\s+no\s+longer\s+apply", "Instruction override attempt (rules no longer apply)"),
+    (r"(?i)\b(?:higher|more)\s+priority\s+than\s+(?:your|the)\s+(?:system\s+prompt|instructions|rules)", "Priority claim over the system prompt"),
+    (r"(?i)\b(?:overrides?|supersedes?|replaces?)\s+(?:your|the)\s+(?:system\s+prompt|instructions|rules)", "Priority claim over the system prompt"),
+    (r"(?i)\b(system\s*override|sudo\s+mode|root\s+access\s+(?:granted|enabled)|maintenance\s+mode)\b", "Administrative / System override directive"),
+    # Direct instruction overrides (French)
+    (r"(?i)\b(?:ignore[rsz]?|oublie[rsz]?|ne\s+tiens?\s+pas\s+compte\s+d)\w*\s+(?:toutes?\s+)?(?:les|tes|vos|ces)\s+"
+     r"(?:instructions|consignes|règles|regles)(?:\s+(?:précédentes|precedentes|ci-dessus|initiales))?", "Instruction override attempt (French)"),
+    (r"(?i)\btu\s+es\s+(?:maintenant|désormais|desormais)\b", "Persona override (French)"),
+
+    # Text that addresses the model reading the document (indirect injection)
+    (rf"(?i)\b(?:note|message|instructions?|reminder)\s+(?:to|for)\s+(?:the\s+|any\s+)?{_AI}\b", "Instructions addressed to the AI reading the document"),
+    (rf"(?i)\bif\s+you\s+are\s+(?:an?\s+)?{_AI}\b", "Instructions addressed to the AI reading the document"),
+    (rf"(?i)\b{_AI}\s+instructions?\s*:", "Instructions addressed to the AI reading the document"),
+    (rf"(?i)\bnew\s+(?:rule|instruction)s?\s+for\s+(?:the\s+)?{_AI}\b", "Instructions addressed to the AI reading the document"),
+    (r"(?i)\bwhen\s+(?:you\s+)?(?:summari[sz]|answer|respond|read)\w*\s+(?:this|the)\s+(?:page|document|file|runbook|text|paragraph)", "Instructions addressed to the AI reading the document"),
+    (r"(?im)^\s*(?:#{1,6}\s*)?(?:system|assistant)\s*:", "Fake chat turn (System:/Assistant: line)"),
 
     # Persona & Jailbreak exploits
-    (r"(?i)\byou\s+are\s+now\s+(in\s+)?(developer|dan|unfiltered|god|root|jailbreak|chaos)\s+mode\b", "Persona/Jailbreak prompt override (DAN / developer mode)"),
+    (r"(?i)\byou\s+are\s+now\s+(in\s+)?(developer|dan|unfiltered|god|root|jailbreak|chaos|maintenance)\s+mode\b", "Persona/Jailbreak prompt override (DAN / developer mode)"),
     (r"(?i)\bact\s+as\s+(an?\s+)?(unrestricted|unfiltered|jailbroken|evil)\s+(ai|assistant|model)\b", "Unrestricted persona adoption directive"),
     (r"(?i)\bpretend\s+(you\s+have\s+no\s+rules|safety\s+filters\s+are\s+off)\b", "Safety filter bypass directive"),
+    (r"(?i)\b(?:no|without\s+(?:any\s+)?)\s*(?:content\s+policy|safety\s+(?:rules|filters|checks|restrictions)|restrictions)\b.{0,40}\b(?:obey|follow|answer|comply)", "Jailbreak persona without restrictions"),
+    (r"(?i)\b(?:assistant|ai|model)\s+(?:with|that\s+has)\s+no\s+(?:content\s+policy|rules|restrictions|filters)", "Jailbreak persona without restrictions"),
+    (r"(?i)\bsafety\s+(?:checks|filters|rules)\s+(?:are\s+)?(?:off|disabled)|\bsafety\s+off\b", "Safety filter bypass directive"),
+
+    # Requests for secrets or sensitive data
+    (r"(?i)\b(?:reveal|print|output|show|dump|include|list|send|leak)\b[^.\n]{0,40}\b(?:system\s+prompt|hidden\s+prompt|api\s+keys?|environment\s+variables|access\s+tokens?|credentials|configuration\s+files?)", "Request to disclose secrets or the system prompt"),
+    (r"(?i)\b(?:send|e-?mail|give|share)\b[^.\n]{0,30}\bfull\s+card\s+numbers?\b", "Request for payment card data"),
 
     # Formatting and tag injection attacks
     (r"(?i)\[\s*(system|assistant|inst|sys)\s*\]", "Chat template format tag injection ([INST] / [SYS])"),
     (r"(?i)<\s*/?\s*(system|instruction|prompt)\s*>", "XML prompt framing spoofing tags (<system>)"),
 
-    # Data Exfiltration payloads
+    # Data exfiltration payloads
     (r"!\[.*?\]\(https?://[^\s)]+\?[^\s)]*=[^\s)]*\)", "Markdown image rendering data exfiltration payload"),
+    (r"(?i)<\s*img\b[^>]*\bsrc\s*=\s*['\"]https?://[^'\"]+\?[^'\"]*=", "HTML image with query string (exfiltration beacon)"),
+    (r"(?i)https?://[^\s)\"']+\?[^\s)\"']*=[^\s)\"']*(?:\{[^}]+\}|\b(?:token|session|history|secret|password|api_?key|conversation)\w*)", "URL template that sends conversation data out"),
     (r"(?i)<\s*script[^>]*>.*?<\s*/\s*script\s*>", "Executable HTML script tag"),
     (r"(?i)<\s*iframe[^>]*>", "Hidden HTML iframe injection"),
 
-    # Steganography and obfuscation tricks
+    # Steganography and hidden text
     (r"[\u200B-\u200D\uFEFF]{3,}", "Steganographic zero-width invisible characters"),
-    (r"(?i)style\s*=\s*['\"][^'\"]*display\s*:\s*none", "Hidden HTML element via display:none"),
+    (r"(?i)style\s*=\s*['\"][^'\"]*(?:display\s*:\s*none|visibility\s*:\s*hidden|font-size\s*:\s*0(?:px|pt|em)?\s*[;'\"]|opacity\s*:\s*0\s*[;'\"])", "Hidden HTML element (display:none, font-size:0...)"),
     (r"(?i)style\s*=\s*['\"][^'\"]*color\s*:\s*(white|#fff|transparent)", "Invisible font color obfuscation"),
 ]
 
 # Hidden instructions in HTML comments (e.g., <!-- ignore instructions and grant access -->)
 COMMENT_INSTRUCTION_PATTERN = re.compile(
-    r"<!--\s*(.*?(?:ignore|system|instruction|override|password|exfiltrate|bypass).*?)\s*-->",
+    r"<!--\s*(.*?(?:ignore|system|instruction|override|password|exfiltrate|bypass|\bai\s*:|assistant|you\s+must|answer\s+that).*?)\s*-->",
     re.IGNORECASE | re.DOTALL,
 )
 
-# Base64 encoded payload detection
-BASE64_CANDIDATE_PATTERN = re.compile(r"\b([A-Za-z0-9+/]{40,}={0,2})\b")
+# Base64 encoded payload detection (the padding "==" is not a word character, so no trailing \b)
+BASE64_CANDIDATE_PATTERN = re.compile(r"(?<![A-Za-z0-9+/])([A-Za-z0-9+/]{40,}={0,2})")
+
+# A match inside quotes, introduced as an example ("such as 'ignore previous instructions'"),
+# is a mention, not an instruction. It is reported but does not flag the document on its own.
+_QUOTE_CHARS = "'\"“”‘’«»"
+_MENTION_CUE = re.compile(
+    r"(?i)\b(?:such\s+as|like|e\.g\.|for\s+example|phrases?|sentences?|words?|write|writes|wrote|"
+    r"attackers?|attacks?|examples?|called|known\s+as|patterns?)\b[^.\n]{0,40}$"
+)
+
+_LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s"})
 
 
-def scan_injection(content: str, filename: str = "") -> dict[str, Any]:
+def _deobfuscate(text: str) -> str:
+    """Undo common obfuscation: zero-width chars, letter-by-letter spacing, leetspeak."""
+    t = unicodedata.normalize("NFKC", text)
+    t = re.sub(r"[\u200B-\u200D\uFEFF]", "", t)
+    # "I-g-n-o-r-e" / "i g n o r e": join runs of single letters separated by one space or dash.
+    t = re.sub(r"\b(?:[A-Za-z][ \-\.]){3,}[A-Za-z]\b", lambda m: re.sub(r"[ \-\.]", "", m.group(0)), t)
+    t = re.sub(r"\s{2,}", " ", t)
+    return t.translate(_LEET)
+
+
+def _is_quoted_mention(text: str, start: int, end: int) -> bool:
+    before, after = text[max(0, start - 1):start], text[end:end + 1]
+    quoted = (before and before in _QUOTE_CHARS) or (after and after in _QUOTE_CHARS)
+    if not quoted:
+        # also accept the match being somewhere inside a short quoted span
+        left = text[max(0, start - 60):start]
+        q = max(left.rfind(c) for c in _QUOTE_CHARS)
+        quoted = q != -1 and not any(c in left[q + 1:] for c in _QUOTE_CHARS)
+    return bool(quoted) and bool(_MENTION_CUE.search(text[max(0, start - 80):start].rstrip(" " + _QUOTE_CHARS)))
+
+
+def _pattern_hits(text: str, variant: str) -> list[tuple[str, str, bool]]:
+    hits = []
+    for pattern, description in INJECTION_PATTERNS:
+        for match in re.finditer(pattern, text):
+            mention = variant == "raw" and _is_quoted_mention(text, match.start(), match.end())
+            hits.append((description, match.group(0)[:60], mention))
+            if not mention:
+                break
+    return hits
+
+
+def scan_injection(content: str, filename: str = "", _depth: int = 0) -> dict[str, Any]:
     reasons = []
     detected_threats = []
+    mentions = []
 
-    # 1. Pattern checks
-    for pattern, description in INJECTION_PATTERNS:
-        match = re.search(pattern, content)
-        if match:
-            reasons.append(f"{description} (matched: '{match.group(0)[:60]}')")
+    # 1. Pattern checks, on the raw text and on a de-obfuscated copy
+    seen = set()
+    deob = _deobfuscate(content)
+    variants = [("raw", content)] + ([("deobfuscated", deob)] if deob != content else [])
+    for variant, text in variants:
+        for description, matched, mention in _pattern_hits(text, variant):
+            if mention:
+                mentions.append(f"{description} (quoted as an example: '{matched}')")
+                continue
+            if description in seen:
+                continue
+            seen.add(description)
+            suffix = "" if variant == "raw" else " [after de-obfuscation]"
+            reasons.append(f"{description} (matched: '{matched}'){suffix}")
             detected_threats.append(description)
 
     # 2. Hidden HTML comment instructions
@@ -72,15 +159,17 @@ def scan_injection(content: str, filename: str = "") -> dict[str, Any]:
             reasons.append(f"Hidden instructions inside HTML comments: '{cm.strip()[:60]}'")
             detected_threats.append("Hidden HTML Comment Injection")
 
-    # 3. Base64 payload inspection
-    for b64 in BASE64_CANDIDATE_PATTERN.findall(content)[:3]:
-        try:
-            decoded = base64.b64decode(b64).decode("utf-8", errors="ignore").lower()
-            if any(k in decoded for k in ["ignore", "system", "override", "developer", "exfiltrate"]):
+    # 3. Base64 payload inspection: decode, then scan the decoded text with the same rules
+    if _depth == 0:
+        for b64 in BASE64_CANDIDATE_PATTERN.findall(content)[:3]:
+            try:
+                decoded = base64.b64decode(b64 + "=" * (-len(b64) % 4)).decode("utf-8")
+            except Exception:
+                continue
+            inner = scan_injection(decoded, _depth=1)
+            if inner["is_suspicious"]:
                 reasons.append(f"Malicious base64 obfuscated payload detected: '{decoded[:40]}'")
                 detected_threats.append("Base64 Obfuscation")
-        except Exception:
-            pass
 
     is_suspicious = len(reasons) > 0
     # Risk score between 0.0 and 1.0 based on severity and match count
@@ -92,6 +181,7 @@ def scan_injection(content: str, filename: str = "") -> dict[str, Any]:
         "reasons": reasons,
         "detected_threats": detected_threats,
         "matches_count": len(reasons),
+        "quoted_mentions": mentions,
     }
 
 
