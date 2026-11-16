@@ -7,7 +7,9 @@ import time
 from pathlib import Path
 from typing import Any
 
-from rag_core import BASE_DIR, add_doc, list_docs, remove_doc
+# rag_core (ChromaDB, embeddings) is imported lazily, inside the functions that index or delete,
+# so the scanner and the PII redactor can be used and tested without the vector store.
+BASE_DIR = Path(__file__).resolve().parent
 
 QUARANTINE_DIR = BASE_DIR / "corpus" / "quarantine"
 
@@ -159,6 +161,8 @@ def approve_quarantine(filename: str) -> dict[str, Any]:
 
     if not file_path.exists():
         raise FileNotFoundError(f"Quarantined file '{safe_name}' not found.")
+
+    from rag_core import add_doc
 
     content = file_path.read_text(encoding="utf-8")
     chunks = add_doc(safe_name, content)
