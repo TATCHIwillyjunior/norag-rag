@@ -280,8 +280,9 @@ def delete_quarantine_doc(name: str):
 
 @app.delete("/api/docs/<name>")
 def docs_delete(name: str):
-    remove_doc(name)
-    return jsonify({"deleted": name})
+    # GDPR Article 17: erase from every store and return the verification report.
+    report = responsible.purge_document(name)
+    return jsonify({"deleted": name, "purge": report})
 
 
 @app.post("/api/reindex")

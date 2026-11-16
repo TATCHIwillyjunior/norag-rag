@@ -343,30 +343,128 @@ def unredact_pii(text: str, reverse_map: dict[str, str]) -> str:
 
 # ---------------- 4. GDPR COMPLIANCE & PURGE VERIFICATION (ARTICLE 17) ----------------
 
+def _doc_of(chunk_id: str) -> str:
+    return chunk_id.split("#", 1)[0]
+
+
+def purge_graph(doc_name: str) -> dict[str, int]:
+    """Remove a document from the concept graph and from the extraction cache.
+
+    A node or edge keeps only the chunks of other documents; if none is left, it is dropped.
+    graph.load_graph() reloads the file when its mtime changes, so retrieval sees the change at once.
+    """
+    import graph as graph_mod
+
+    removed = {"nodes": 0, "edges": 0, "cache_entries": 0}
+    if graph_mod.GRAPH_FILE.exists():
+        g = json.loads(graph_mod.GRAPH_FILE.read_text(encoding="utf-8"))
+        g["docs"] = [d for d in g.get("docs", []) if d != doc_name]
+        g["chunk_hashes"] = {k: v for k, v in g.get("chunk_hashes", {}).items() if _doc_of(k) != doc_name}
+        nodes = {}
+        for key, node in g.get("nodes", {}).items():
+            node["chunks"] = [c for c in node.get("chunks", []) if _doc_of(c) != doc_name]
+            if node["chunks"]:
+                nodes[key] = node
+            else:
+                removed["nodes"] += 1
+        edges = []
+        for edge in g.get("edges", []):
+            edge["chunks"] = [c for c in edge.get("chunks", []) if _doc_of(c) != doc_name]
+            if edge["chunks"] and edge["head"] in nodes and edge["tail"] in nodes:
+                edge["count"] = len(edge["chunks"])
+                edges.append(edge)
+            else:
+                removed["edges"] += 1
+        g["nodes"], g["edges"] = nodes, edges
+        if isinstance(g.get("stats"), dict):
+            g["stats"]["entities"], g["stats"]["relations"] = len(nodes), len(edges)
+        graph_mod.GRAPH_FILE.write_text(json.dumps(g, ensure_ascii=False, indent=1), encoding="utf-8")
+    if graph_mod.CACHE_FILE.exists():
+        kept = []
+        for line in graph_mod.CACHE_FILE.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                entry = json.loads(line)
+            except ValueError:
+                kept.append(line)
+                continue
+            if _doc_of(str(entry.get("chunk_id", ""))) == doc_name:
+                removed["cache_entries"] += 1
+            else:
+                kept.append(line)
+        graph_mod.CACHE_FILE.write_text("\n".join(kept) + ("\n" if kept else ""), encoding="utf-8")
+    return removed
+
+
+def purge_conversations(doc_name: str) -> int:
+    """Drop conversation turns whose answer cites the document (their text may quote it)."""
+    import conversation
+
+    dropped = 0
+    for session in conversation._SESSIONS.values():
+        before = len(session.turns)
+        session.turns = [t for t in session.turns
+                         if not any(_doc_of(r) == doc_name for r in t.get("references", []))]
+        dropped += before - len(session.turns)
+    return dropped
+
+
+def purge_document(doc_name: str) -> dict[str, Any]:
+    """GDPR Article 17: erase a document from every store, then verify.
+
+    Stores: corpus file, ChromaDB chunks, BM25 index file (rebuilt), concept graph nodes/edges,
+    graph extraction cache, conversation turns citing it. Traces only hold chunk IDs, never text.
+    """
+    import bm25_index
+    from rag_core import remove_doc
+
+    remove_doc(doc_name)                                  # file + ChromaDB
+    bm25_index.get_index(v2_all_chunks())                 # fingerprint changed -> index file rebuilt
+    graph_removed = purge_graph(doc_name)
+    turns_dropped = purge_conversations(doc_name)
+    report = verify_document_purge(doc_name)
+    report["removed_from_graph"] = graph_removed
+    report["conversation_turns_dropped"] = turns_dropped
+    return report
+
+
 def verify_document_purge(doc_name: str) -> dict[str, Any]:
     from rag_core import CORPUS_DIR, get_collection
     import bm25_index
+    import conversation
+    import graph as graph_mod
 
-    # Check 1: File deletion
     file_exists = (CORPUS_DIR / doc_name).exists()
+    db_chunks_count = len(get_collection().get(where={"doc": doc_name}).get("ids", []))
 
-    # Check 2: Vector DB chunks
-    collection = get_collection()
-    res = collection.get(where={"doc": doc_name})
-    db_chunks_count = len(res.get("ids", []))
+    bm25_file_mentions = 0
+    if bm25_index.INDEX_FILE.exists():
+        bm25_file_mentions = bm25_index.INDEX_FILE.read_text(encoding="utf-8").count(f"{doc_name}#")
 
-    # Check 3: BM25 index
-    bm25_chunks = [c for c in v2_all_chunks() if c.get("doc") == doc_name]
+    graph_mentions = 0
+    if graph_mod.GRAPH_FILE.exists():
+        graph_mentions = graph_mod.GRAPH_FILE.read_text(encoding="utf-8").count(f"{doc_name}#")
+    cache_mentions = 0
+    if graph_mod.CACHE_FILE.exists():
+        cache_mentions = graph_mod.CACHE_FILE.read_text(encoding="utf-8").count(f"{doc_name}#")
 
-    purged = (not file_exists) and (db_chunks_count == 0) and (len(bm25_chunks) == 0)
+    turns = sum(1 for s in conversation._SESSIONS.values() for t in s.turns
+                if any(_doc_of(r) == doc_name for r in t.get("references", [])))
 
-    return {
-        "doc": doc_name,
+    checks = {
         "purged_from_disk": not file_exists,
         "purged_from_vector_store": db_chunks_count == 0,
+        "purged_from_bm25": bm25_file_mentions == 0,
+        "purged_from_graph": graph_mentions == 0,
+        "purged_from_graph_cache": cache_mentions == 0,
+        "purged_from_conversations": turns == 0,
+    }
+    return {
+        "doc": doc_name,
+        **checks,
         "vector_chunks_remaining": db_chunks_count,
-        "purged_from_bm25": len(bm25_chunks) == 0,
-        "is_fully_purged": purged,
+        "is_fully_purged": all(checks.values()),
     }
 
 
