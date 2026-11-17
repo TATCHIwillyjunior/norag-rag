@@ -12,9 +12,12 @@ from rag_core import BASE_DIR
 TRACES_FILE = BASE_DIR / "data" / "traces.jsonl"
 TRACES_LOCK = threading.Lock()
 
-# Gemini Flash pricing reference: $0.075/1M input, $0.30/1M output
-COST_PER_INPUT_TOKEN = 0.075 / 1_000_000
-COST_PER_OUTPUT_TOKEN = 0.30 / 1_000_000
+RETENTION_DAYS = int(os.getenv("TRACE_RETENTION_DAYS", "30"))
+PRUNE_EVERY = 100
+_writes = 0
+
+COST_PER_INPUT_TOKEN = float(os.getenv("PRICE_INPUT_PER_M", "0.075")) / 1_000_000
+COST_PER_OUTPUT_TOKEN = float(os.getenv("PRICE_OUTPUT_PER_M", "0.30")) / 1_000_000
 
 
 def compute_cost(input_tokens: int, output_tokens: int) -> float:
@@ -130,12 +133,38 @@ class Trace:
         }
 
 
+def prune_traces(days: int | None = None) -> int:
+    days = RETENTION_DAYS if days is None else days
+    if not TRACES_FILE.exists():
+        return 0
+    limit = time.time() - days * 86400
+    with TRACES_LOCK:
+        lines = [line for line in TRACES_FILE.read_text(encoding="utf-8").splitlines() if line.strip()]
+        kept = []
+        for line in lines:
+            try:
+                started = float(json.loads(line).get("start_time", 0))
+            except (json.JSONDecodeError, TypeError, ValueError):
+                continue
+            if started >= limit:
+                kept.append(line)
+        removed = len(lines) - len(kept)
+        if removed:
+            TRACES_FILE.write_text("\n".join(kept) + ("\n" if kept else ""), encoding="utf-8")
+    return removed
+
+
 def record_trace(trace: Trace):
+    global _writes
     TRACES_FILE.parent.mkdir(parents=True, exist_ok=True)
     entry = trace.to_dict()
     with TRACES_LOCK:
         with TRACES_FILE.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        _writes += 1
+        due = _writes % PRUNE_EVERY == 0
+    if due:
+        prune_traces()
 
 
 def get_trace(trace_id: str) -> dict[str, Any] | None:

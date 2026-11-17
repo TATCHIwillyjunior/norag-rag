@@ -22,7 +22,7 @@ Every user query and every indexing execution produces exactly one root `Trace` 
 
 ### 1.2 Storage, Retention, and Privacy
 - **Storage:** Local append-only JSON Lines file (`data/traces.jsonl`).
-- **Retention:** Stored locally on the user's machine. Zero data leaves the machine to external logging vendors. Retention policy is local-first: traces persist across sessions and can be purged at any time.
+- **Retention:** Stored locally on the user's machine. Zero data leaves the machine to external logging vendors. Traces older than `TRACE_RETENTION_DAYS` (30 by default) are deleted automatically: at every start of the app and after every 100 new traces. The file is not committed to git (it is in `.gitignore`), and the unit tests write to a temporary file, never to the real one.
 - **Access Control:** Traces are private to the local instance. No external endpoints or unauthorized readers have access.
 - **Privacy Rules Enforced:**
   - **No API keys or secrets:** Never written to spans or trace attributes.
