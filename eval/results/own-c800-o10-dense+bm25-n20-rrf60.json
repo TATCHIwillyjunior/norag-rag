@@ -1,6 +1,6 @@
 {
   "corpus": "own",
-  "generated_at": "2026-11-15T09:35:41+00:00",
+  "generated_at": "2026-11-17T10:43:43+00:00",
   "retrievers": [
     "dense",
     "bm25"
@@ -214,7 +214,7 @@
     }
   },
   "cost": {
-    "avg_retrieval_ms": 825,
+    "avg_retrieval_ms": 677,
     "retrieval_llm_calls_per_question": 0
   },
   "rows": [
@@ -301,10 +301,10 @@
           "CrimeAndPunishment.txt#452"
         ]
       },
-      "retrieval_latency_ms": 1557,
+      "retrieval_latency_ms": 730,
       "retriever_timings_ms": {
-        "dense": 1408,
-        "bm25": 40
+        "dense": 548,
+        "bm25": 18
       },
       "notes": [],
       "evidence_ranks": [
@@ -343,11 +343,11 @@
         "CrimeAndPunishment.txt#31",
         "CrimeAndPunishment.txt#42",
         "CrimeAndPunishment.txt#1332",
-        "CrimeAndPunishment.txt#1308",
         "CrimeAndPunishment.txt#1274",
         "CrimeAndPunishment.txt#177",
         "CrimeAndPunishment.txt#162",
-        "CrimeAndPunishment.txt#175"
+        "CrimeAndPunishment.txt#175",
+        "CrimeAndPunishment.txt#1302"
       ],
       "found_by": {
         "CrimeAndPunishment.txt#38": {
@@ -370,10 +370,6 @@
           "dense": 13,
           "bm25": 16
         },
-        "CrimeAndPunishment.txt#1308": {
-          "dense": 18,
-          "bm25": 19
-        },
         "CrimeAndPunishment.txt#1274": {
           "dense": 3
         },
@@ -385,6 +381,9 @@
         },
         "CrimeAndPunishment.txt#175": {
           "bm25": 5
+        },
+        "CrimeAndPunishment.txt#1302": {
+          "dense": 6
         }
       },
       "per_retriever": {
@@ -413,10 +412,10 @@
           "CrimeAndPunishment.txt#67"
         ]
       },
-      "retrieval_latency_ms": 904,
+      "retrieval_latency_ms": 662,
       "retriever_timings_ms": {
-        "dense": 764,
-        "bm25": 49
+        "dense": 577,
+        "bm25": 24
       },
       "notes": [],
       "evidence_ranks": [
@@ -522,10 +521,10 @@
           "CrimeAndPunishment.txt#469"
         ]
       },
-      "retrieval_latency_ms": 749,
+      "retrieval_latency_ms": 779,
       "retriever_timings_ms": {
-        "dense": 649,
-        "bm25": 22
+        "dense": 701,
+        "bm25": 17
       },
       "notes": [],
       "evidence_ranks": [
@@ -631,10 +630,10 @@
           "CrimeAndPunishment.txt#1542"
         ]
       },
-      "retrieval_latency_ms": 656,
+      "retrieval_latency_ms": 639,
       "retriever_timings_ms": {
-        "dense": 574,
-        "bm25": 20
+        "dense": 561,
+        "bm25": 18
       },
       "notes": [],
       "evidence_ranks": [
@@ -740,10 +739,10 @@
           "CrimeAndPunishment.txt#405"
         ]
       },
-      "retrieval_latency_ms": 719,
+      "retrieval_latency_ms": 668,
       "retriever_timings_ms": {
-        "dense": 638,
-        "bm25": 20
+        "dense": 614,
+        "bm25": 1
       },
       "notes": [],
       "evidence_ranks": [
@@ -852,10 +851,10 @@
           "CrimeAndPunishment.txt#1022"
         ]
       },
-      "retrieval_latency_ms": 721,
+      "retrieval_latency_ms": 646,
       "retriever_timings_ms": {
-        "dense": 631,
-        "bm25": 15
+        "dense": 558,
+        "bm25": 23
       },
       "notes": [],
       "evidence_ranks": [
@@ -963,10 +962,10 @@
           "CrimeAndPunishment.txt#204"
         ]
       },
-      "retrieval_latency_ms": 676,
+      "retrieval_latency_ms": 591,
       "retriever_timings_ms": {
-        "dense": 588,
-        "bm25": 20
+        "dense": 538,
+        "bm25": 16
       },
       "notes": [],
       "evidence_ranks": [
@@ -1074,10 +1073,10 @@
           "CrimeAndPunishment.txt#1545"
         ]
       },
-      "retrieval_latency_ms": 734,
+      "retrieval_latency_ms": 616,
       "retriever_timings_ms": {
-        "dense": 643,
-        "bm25": 22
+        "dense": 555,
+        "bm25": 14
       },
       "notes": [],
       "evidence_ranks": [
@@ -1182,10 +1181,10 @@
           "CrimeAndPunishment.txt#629"
         ]
       },
-      "retrieval_latency_ms": 736,
+      "retrieval_latency_ms": 739,
       "retriever_timings_ms": {
-        "dense": 644,
-        "bm25": 19
+        "dense": 671,
+        "bm25": 16
       },
       "notes": []
     },
@@ -1266,10 +1265,10 @@
           "CrimeAndPunishment.txt#53"
         ]
       },
-      "retrieval_latency_ms": 802,
+      "retrieval_latency_ms": 697,
       "retriever_timings_ms": {
-        "dense": 672,
-        "bm25": 29
+        "dense": 628,
+        "bm25": 13
       },
       "notes": []
     }
