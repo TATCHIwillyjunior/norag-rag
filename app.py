@@ -409,5 +409,26 @@ def words_question():
     return jsonify(words.question_words(index, req.question))
 
 
+def prepare_documents():
+    from rag_core import CORPUS_DIR, get_collection
+
+    collection = get_collection()
+    for name in corpus_names():
+        if collection.get(where={"doc": name}, include=["metadatas"])["ids"]:
+            continue
+        text = (CORPUS_DIR / name).read_text(encoding="utf-8", errors="replace")
+        if responsible.scan_injection(text, name).get("is_suspicious"):
+            print(f"{name} looks suspicious and was not indexed. Review it on the /quarantine page or remove it.", flush=True)
+            continue
+        print(f"Reading {name} ...", flush=True)
+        index_doc(name)
+
+
 if __name__ == "__main__":
+    print("Preparing the documents (the first start can take a few minutes)...", flush=True)
+    removed = tracing.prune_traces()
+    if removed:
+        print(f"Deleted {removed} old trace(s).", flush=True)
+    prepare_documents()
+    print("Ready: open http://127.0.0.1:5000", flush=True)
     app.run(host="127.0.0.1", port=5000, debug=False)

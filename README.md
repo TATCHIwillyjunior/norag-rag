@@ -46,8 +46,9 @@ does not generate answers. Optional graph settings are `GRAPH_API_KEY`,
 python app.py
 ```
 
-Open <http://127.0.0.1:5000>. Documents in `corpus/` are available in the Ask
-page; upload documents there if needed, then select **Rebuild index**. The
+The first start reads every document of the `corpus/` folder (a few minutes, mostly
+for the novel); the terminal prints `Ready` when it is finished. Open
+<http://127.0.0.1:5000>. Upload more documents on the Ask page if needed. The
 evaluation corpora are configured in `eval/corpora.json`:
 
 - `kestrel`: the five Kestrel Markdown documents in `corpus/`
